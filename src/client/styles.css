@@ -105,7 +105,7 @@ nav button i { width: 20px; height: 18px; margin-left: auto; border-radius: 6px;
 .breadcrumbs { color: #87928f; display: flex; align-items: center; gap: 10px; font-size: 11px; }
 .breadcrumbs strong { color: #33423f; }
 .top-actions { margin-left: auto; display: flex; align-items: center; gap: 5px; }
-.role-pill { margin-right: 12px; padding: 6px 9px; border: 1px solid #d9e8e3; border-radius: 999px; color: var(--mint); background: #f1f8f6; font-size: 9px; font-weight: 800; }
+.role-pill { margin-right: 12px; padding: 6px 9px; border: 1px solid #d9e8e3; border-radius: 999px; color: var(--mint); background: #f1f8f6; font-size: 9px; font-weight: 800; text-decoration: none; }
 .icon-button, .menu-button { width: 38px; height: 38px; border: 0; border-radius: 9px; color: #4f5e5a; background: transparent; display: grid; place-items: center; position: relative; }
 .icon-button:hover, .menu-button:hover { background: var(--soft); }
 .notification-button i { width: 7px; height: 7px; border: 2px solid white; border-radius: 50%; background: #e46461; position: absolute; top: 8px; right: 8px; }

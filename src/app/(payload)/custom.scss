@@ -1,0 +1,12 @@
+:root {
+  --theme-elevation-1000: #17213a;
+}
+
+.template-default__wrap::before {
+  content: 'BESTCAT';
+  display: block;
+  margin-bottom: 1.5rem;
+  color: #ef7046;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
