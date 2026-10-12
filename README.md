@@ -18,6 +18,69 @@ Cieľom systému je vytvoriť webovú aplikáciu, ktorá bude podporovať najmä
 
 Projekt bude postupne rozširovaný podľa požiadaviek zadania a potrieb tímu.
 
+## Prihlásenie
+
+Projekt obsahuje responzívny React frontend podľa návrhu **BESTCAT Web UI Design** a
+Node.js backend s prihlasovacím API. Používatelia aj session sú uložené v PostgreSQL,
+session identifikátor je v `HttpOnly` cookie a heslá sú uložené ako `scrypt` hash.
+Používateľská rola sa získava výhradne z databázy.
+
+Pre lokálne spustenie:
+
+```bash
+cp .env.example .env
+pnpm install
+docker compose up -d db
+pnpm db:setup
+pnpm dev
+
+
+testovaci user:
+admin@bestcat.sk
+Bestcat123!
+
+```
+
+Frontend bude dostupný na `http://localhost:5173`, API na
+`http://localhost:3000`. Predvolené lokálne demo údaje z `.env.example` sú:
+
+```text
+E-mail: admin@bestcat.sk
+Heslo:  Bestcat123!
+```
+
+`pnpm db:setup` aplikuje migrácie a vloží alebo aktualizuje DEV používateľa podľa
+premenných `AUTH_EMAIL`, `AUTH_PASSWORD`, `AUTH_NAME` a `AUTH_ROLE`.
+
+### Prepínanie databázy
+
+Backend používa iba pripojenie z `DATABASE_URL`. Lokálna DEV konfigurácia je:
+
+```env
+DATABASE_URL=postgresql://bestcat:bestcat_dev@localhost:5433/bestcat_dev
+DATABASE_SSL=disable
+```
+
+Pri neskoršom nasadení sa kód nemení. V produkčnom ENV sa nastaví produkčná URL a
+režim SSL, napríklad:
+
+```env
+DATABASE_URL=postgresql://user:password@production-host:5432/bestcat
+DATABASE_SSL=verify-full
+```
+
+Podporované hodnoty `DATABASE_SSL` sú `disable`, `require` a `verify-full`.
+Produkcia vyžaduje aj náhodný `SESSION_SECRET` s dĺžkou aspoň 32 znakov. Hodnoty
+z `.env.example` sú určené iba na lokálny vývoj.
+
+Produkčný build a spustenie:
+
+```bash
+pnpm db:migrate
+pnpm build
+NODE_ENV=production pnpm start
+```
+
 ## Development environment
 
 Odporúčané verzie pre vývoj:
@@ -54,6 +117,8 @@ Pred vytvorením Pull Requestu spustite:
 pnpm install --frozen-lockfile
 pnpm lint
 pnpm typecheck
+pnpm test
+pnpm build
 ```
 
 Všetky kontroly musia prejsť bez chyby.

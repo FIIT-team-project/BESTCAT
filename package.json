@@ -1,10 +1,21 @@
 {
   "name": "BESTCAT",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "BESTCAT exhibition management web application",
+  "private": true,
+  "main": "dist/server/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently --kill-others-on-fail \"pnpm dev:server\" \"pnpm dev:web\"",
+    "dev:server": "tsx watch src/server/index.ts",
+    "dev:web": "vite",
+    "db:migrate": "tsx src/server/db/migrate.ts",
+    "db:seed": "tsx src/server/db/seed.ts",
+    "db:setup": "pnpm db:migrate && pnpm db:seed",
+    "build": "pnpm build:server && pnpm build:web",
+    "build:server": "tsc -p tsconfig.server.json",
+    "build:web": "vite build",
+    "start": "node dist/server/index.js",
+    "test": "tsx --test tests/auth.test.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit"
   },
@@ -20,10 +31,27 @@
   },
   "packageManager": "pnpm@12.11.2",
   "type": "module",
+  "dependencies": {
+    "express": "^4.21.2",
+    "helmet": "^8.1.0",
+    "pg": "^8.16.3",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
   "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.19.1",
+    "@types/pg": "^8.15.6",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
     "@eslint/js": "^10.0.1",
+    "concurrently": "^9.2.1",
     "eslint": "^10.12.0",
+    "globals": "^16.5.0",
+    "tsx": "^4.21.0",
     "typescript": "6.0.2",
-    "typescript-eslint": "^8.71.1"
+    "typescript-eslint": "^8.71.1",
+    "vite": "^7.2.7"
   }
 }
