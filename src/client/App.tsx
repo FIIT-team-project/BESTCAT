@@ -1,6 +1,9 @@
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+'use client'
 
-import { ApiError, getCurrentUser, login, logout, type Role, type User } from './api'
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import Link from 'next/link'
+
+import { ApiError, getCurrentUser, getDashboardData, login, logout, roleLabels, type DashboardData, type Role, type User } from './api'
 
 type Page = 'Dashboard' | 'Exhibitions' | 'Animals' | 'Live calls' | 'Statistics' | 'Reports' | 'Imports'
 
@@ -15,12 +18,14 @@ const navigation: { label: Page; symbol: string }[] = [
 ]
 
 const rolePages: Record<Role, Page[]> = {
-  Admin: ['Dashboard', 'Exhibitions', 'Animals', 'Live calls', 'Statistics', 'Reports', 'Imports'],
-  Judge: ['Dashboard', 'Animals', 'Statistics'],
-  Steward: ['Dashboard', 'Live calls', 'Animals'],
-  'Chief Steward': ['Dashboard', 'Live calls', 'Animals', 'Statistics', 'Reports'],
-  Exhibitor: ['Dashboard', 'Exhibitions', 'Animals'],
-  'Club / Editor': ['Dashboard', 'Exhibitions', 'Animals', 'Statistics', 'Reports', 'Imports'],
+  admin: ['Dashboard', 'Exhibitions', 'Animals', 'Live calls', 'Statistics', 'Reports', 'Imports'],
+  club: ['Dashboard', 'Exhibitions', 'Animals', 'Statistics', 'Reports', 'Imports'],
+  editor: ['Dashboard', 'Exhibitions', 'Animals', 'Statistics', 'Reports', 'Imports'],
+  viewer: ['Dashboard', 'Exhibitions', 'Statistics', 'Reports'],
+  judge: ['Dashboard', 'Animals', 'Statistics'],
+  steward: ['Dashboard', 'Live calls', 'Animals'],
+  'chief-steward': ['Dashboard', 'Live calls', 'Animals', 'Statistics', 'Reports'],
+  exhibitor: ['Dashboard', 'Exhibitions', 'Animals'],
 }
 
 const pageCopy: Record<Page, { title: string; description: string }> = {
@@ -80,7 +85,7 @@ function Login({ onAuthenticated, onPublic }: { onAuthenticated: (user: User) =>
           <span className="login-label">VÝSTAVY V DOKONALEJ SÚHRE</span>
           <h1>Jeden živý priestor pre každý okamih výstavy.</h1>
           <p>Od registrácie po finálne výsledky spája BESTCAT kluby, posudzovateľov, stewardov aj vystavovateľov v reálnom čase.</p>
-          <div className="login-live"><span className="pulse" /><div><b>Nordic Cat Show 2026</b><small>4 kruhy naživo · 684 posúdených zvierat</small></div></div>
+          <div className="login-live"><span className="pulse" /><div><b>Jubilee Show 2024</b><small>121 prihlášok v importovanom katalógu</small></div></div>
         </div>
         <small className="login-footer">Riešenie pre kluby a federácie naprieč Európou</small>
       </section>
@@ -147,14 +152,27 @@ function Metric({ label, value, note }: { label: string; value: string; note: st
 
 function DashboardContent({ user }: { user: User }) {
   const firstName = user.name.split(' ')[0]
+  const [data, setData] = useState<DashboardData | null>(null)
+
+  useEffect(() => {
+    let active = true
+    getDashboardData().then((result) => { if (active) setData(result) }).catch(() => undefined)
+    return () => { active = false }
+  }, [])
+
+  const completion = data?.entries ? Math.round((data.completedEntries / data.entries) * 100) : 0
+  const date = data?.exhibition
+    ? new Intl.DateTimeFormat('sk-SK', { day: 'numeric', month: 'short', year: 'numeric' }).format(new Date(data.exhibition.startDate))
+    : 'načítavam'
+
   return (
     <>
-      <div className="page-header"><div><h1>Dobré ráno, {firstName}</h1><p>Tu je dnešný priebeh výstavy a posudzovania.</p></div><button className="button secondary">Exportovať report</button><button className="button primary">Nová výstava</button></div>
+      <div className="page-header"><div><h1>Dobré ráno, {firstName}</h1><p>{data?.exhibition ? `${data.exhibition.title} · ${data.exhibition.city} · ${date}` : 'Načítavam údaje výstavy…'}</p></div><button className="button secondary">Exportovať report</button><button className="button primary">Nová výstava</button></div>
       <section className="metrics">
-        <Metric label="Zvieratá spolu" value="1 248" note="8,2 % oproti minulej výstave" />
-        <Metric label="Dnes posúdené" value="684" note="54,8 % dokončených" />
-        <Metric label="Aktuálne čaká" value="37" note="12 menej ako priemer" />
-        <Metric label="Priemerné čakanie" value="18 min" note="o 3 minúty rýchlejšie" />
+        <Metric label="Zvieratá spolu" value={data ? String(data.cats) : '—'} note="uložené v Payload CMS" />
+        <Metric label="Katalógové prihlášky" value={data ? String(data.entries) : '—'} note="importované zo vstupného CSV" />
+        <Metric label="Dokončené" value={data ? String(data.completedEntries) : '—'} note={`${completion} % prihlášok`} />
+        <Metric label="Zdrojové importy" value={data ? String(data.imports) : '—'} note="PDF katalóg a CSV dáta" />
       </section>
       <section className="dashboard-grid">
         <article className="panel live-overview">
@@ -203,11 +221,11 @@ function Workspace({ user, onSignOut }: { user: User; onSignOut: () => Promise<v
           {navigation.filter((item) => allowedPages.includes(item.label)).map((item) => <button key={item.label} className={page === item.label ? 'active' : ''} onClick={() => { setPage(item.label); setMobileNav(false) }}><span>{item.symbol}</span>{pageCopy[item.label].title}{item.label === 'Live calls' && <i>3</i>}</button>)}
         </nav>
         <div className="sidebar-footer">
-          <div className="user-mini"><span>{initials}</span><div><b>{user.name}</b><small>{user.role}</small></div><button className="signout-button" onClick={handleSignOut} disabled={signingOut} title="Odhlásiť sa" aria-label="Odhlásiť sa"><Icon name="logout" /></button></div>
+          <div className="user-mini"><span>{initials}</span><div><b>{user.name}</b><small>{roleLabels[user.role]}</small></div><button className="signout-button" onClick={handleSignOut} disabled={signingOut} title="Odhlásiť sa" aria-label="Odhlásiť sa"><Icon name="logout" /></button></div>
         </div>
       </aside>
       <div className="main-shell">
-        <header className="topbar"><button className="menu-button" onClick={() => setMobileNav((value) => !value)} aria-label="Otvoriť menu"><Icon name="menu" /></button><div className="breadcrumbs"><span>BESTCAT Club</span><b>/</b><strong>{pageCopy[page].title}</strong></div><div className="top-actions"><span className="role-pill">{user.role}</span><button className="icon-button" aria-label="Hľadať"><Icon name="search" /></button><button className="icon-button notification-button" aria-label="Notifikácie"><Icon name="bell" /><i /></button></div></header>
+        <header className="topbar"><button className="menu-button" onClick={() => setMobileNav((value) => !value)} aria-label="Otvoriť menu"><Icon name="menu" /></button><div className="breadcrumbs"><span>BESTCAT Club</span><b>/</b><strong>{pageCopy[page].title}</strong></div><div className="top-actions"><Link className="role-pill" href="/admin">CMS</Link><span className="role-pill">{roleLabels[user.role]}</span><button className="icon-button" aria-label="Hľadať"><Icon name="search" /></button><button className="icon-button notification-button" aria-label="Notifikácie"><Icon name="bell" /><i /></button></div></header>
         <main className="content">{page === 'Dashboard' ? <DashboardContent user={user} /> : <PageContent page={page} />}</main>
       </div>
       {mobileNav && <button className="scrim" onClick={() => setMobileNav(false)} aria-label="Zavrieť menu" />}
@@ -216,7 +234,7 @@ function Workspace({ user, onSignOut }: { user: User; onSignOut: () => Promise<v
 }
 
 function PublicDisplay({ onClose }: { onClose: () => void }) {
-  return <div className="public-screen"><header><Brand /><div><b>Nordic Cat Show 2026</b><span>Sobota 18. mája · Bratislava</span></div><button className="button ghost" onClick={onClose}>Späť na prihlásenie</button></header><main><div className="public-kicker"><span className="pulse" /> PRÁVE VYVOLÁVAME</div><div className="public-number">048</div><h1>Noble Spirit</h1><p>British Shorthair · Trieda 9</p><div className="public-ring">KRUH 2 <span>Posudzovateľ Michael Chen</span></div></main><footer><span>Kruh 1 · Posudzovanie</span><span>Kruh 2 · Vyvolávanie</span><span>Kruh 3 · Dokončuje</span></footer></div>
+  return <div className="public-screen"><header><Brand /><div><b>Jubilee Show 2024</b><span>28.–29. december · Hrnčiarovce nad Parnou</span></div><button className="button ghost" onClick={onClose}>Späť na prihlásenie</button></header><main><div className="public-kicker"><span className="pulse" /> KATALÓG JE NAČÍTANÝ</div><div className="public-number">121</div><h1>Výstavných prihlášok</h1><p>Terra Felis Slovakia · L#244205</p><div className="public-ring">BESTCAT CMS <span>Živé vyvolávanie sa aktivuje pri otvorení kruhov</span></div></main><footer><span>5 skupín plemien</span><span>22 plemien</span><span>121 mačiek</span></footer></div>
 }
 
 function LoadingScreen() {

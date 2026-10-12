@@ -46,12 +46,6 @@ build/
 # Payload CMS
 # =========================
 .payload/
-payload-types.ts
-
-# Ak payload-types.ts chcete commitovať,
-# tento riadok odstráň.
-# Vo väčšine tímových projektov je často lepšie
-# generované typy commitovať, závisí od workflow.
 
 # =========================
 # Environment / secrets
@@ -125,6 +119,7 @@ temp/
 uploads/
 public/uploads/
 storage/
+media/
 
 # If some uploaded/generated example files
 # should be committed, create a dedicated folder.

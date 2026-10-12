@@ -3,13 +3,13 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_DB: bestcat_dev
+      POSTGRES_DB: bestcat_payload_dev
       POSTGRES_USER: bestcat
       POSTGRES_PASSWORD: bestcat_dev
     ports:
       - "5433:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bestcat -d bestcat_dev"]
+      test: ["CMD-SHELL", "pg_isready -U bestcat -d bestcat_payload_dev"]
       interval: 5s
       timeout: 3s
       retries: 10
