@@ -50,8 +50,8 @@ function Icon({ name }: { name: 'arrow' | 'bell' | 'menu' | 'search' | 'logout' 
   return <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">{paths[name]}</svg>
 }
 
-function Brand({ mobile = false }: { mobile?: boolean }) {
-  return <div className={`brand ${mobile ? 'mobile-login-brand' : ''}`}><span className="brand-mark">B</span><span>BESTCAT</span></div>
+function Brand() {
+  return <div className="brand"><span className="brand-mark">B</span><span>BESTCAT</span></div>
 }
 
 function Login({ onAuthenticated, onPublic }: { onAuthenticated: (user: User) => void; onPublic: () => void }) {
@@ -79,20 +79,8 @@ function Login({ onAuthenticated, onPublic }: { onAuthenticated: (user: User) =>
 
   return (
     <div className="login-screen">
-      <section className="login-story" aria-label="O BESTCAT">
-        <Brand />
-        <div className="login-message">
-          <span className="login-label">VÝSTAVY V DOKONALEJ SÚHRE</span>
-          <h1>Jeden živý priestor pre každý okamih výstavy.</h1>
-          <p>Od registrácie po finálne výsledky spája BESTCAT kluby, posudzovateľov, stewardov aj vystavovateľov v reálnom čase.</p>
-          <div className="login-live"><span className="pulse" /><div><b>Jubilee Show 2024</b><small>121 prihlášok v importovanom katalógu</small></div></div>
-        </div>
-        <small className="login-footer">Riešenie pre kluby a federácie naprieč Európou</small>
-      </section>
-
       <main className="login-form-wrap">
         <form className="login-form" onSubmit={handleSubmit} noValidate>
-          <Brand mobile />
           <span className="eyebrow">VITAJTE SPÄŤ</span>
           <h2>Prihlásenie do BESTCAT</h2>
           <p>Zadajte svoje údaje a vstúpte do pracovného priestoru výstavy.</p>
