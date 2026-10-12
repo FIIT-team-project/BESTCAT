@@ -79,16 +79,6 @@ function Login({ onAuthenticated, onPublic }: { onAuthenticated: (user: User) =>
 
   return (
     <div className="login-screen">
-      <section className="login-story" aria-label="O BESTCAT">
-        <div className="login-message">
-          <span className="login-label">VÝSTAVY V DOKONALEJ SÚHRE</span>
-          <h1>Jeden živý priestor pre každý okamih výstavy.</h1>
-          <p>Od registrácie po finálne výsledky spája BESTCAT kluby, posudzovateľov, stewardov aj vystavovateľov v reálnom čase.</p>
-          <div className="login-live"><span className="pulse" /><div><b>Jubilee Show 2024</b><small>121 prihlášok v importovanom katalógu</small></div></div>
-        </div>
-        <small className="login-footer">Riešenie pre kluby a federácie naprieč Európou</small>
-      </section>
-
       <main className="login-form-wrap">
         <form className="login-form" onSubmit={handleSubmit} noValidate>
           <span className="eyebrow">VITAJTE SPÄŤ</span>
