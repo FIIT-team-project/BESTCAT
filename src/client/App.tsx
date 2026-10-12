@@ -50,8 +50,8 @@ function Icon({ name }: { name: 'arrow' | 'bell' | 'menu' | 'search' | 'logout' 
   return <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">{paths[name]}</svg>
 }
 
-function Brand({ mobile = false }: { mobile?: boolean }) {
-  return <div className={`brand ${mobile ? 'mobile-login-brand' : ''}`}><span className="brand-mark">B</span><span>BESTCAT</span></div>
+function Brand() {
+  return <div className="brand"><span className="brand-mark">B</span><span>BESTCAT</span></div>
 }
 
 function Login({ onAuthenticated, onPublic }: { onAuthenticated: (user: User) => void; onPublic: () => void }) {
@@ -80,7 +80,6 @@ function Login({ onAuthenticated, onPublic }: { onAuthenticated: (user: User) =>
   return (
     <div className="login-screen">
       <section className="login-story" aria-label="O BESTCAT">
-        <Brand />
         <div className="login-message">
           <span className="login-label">VÝSTAVY V DOKONALEJ SÚHRE</span>
           <h1>Jeden živý priestor pre každý okamih výstavy.</h1>
@@ -92,7 +91,6 @@ function Login({ onAuthenticated, onPublic }: { onAuthenticated: (user: User) =>
 
       <main className="login-form-wrap">
         <form className="login-form" onSubmit={handleSubmit} noValidate>
-          <Brand mobile />
           <span className="eyebrow">VITAJTE SPÄŤ</span>
           <h2>Prihlásenie do BESTCAT</h2>
           <p>Zadajte svoje údaje a vstúpte do pracovného priestoru výstavy.</p>
