@@ -6,6 +6,7 @@ import { fileURLToPath } from 'node:url'
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const nextConfig: NextConfig = {
+  devIndicators: false,
   images: {
     localPatterns: [{ pathname: '/api/media/file/**' }],
   },
