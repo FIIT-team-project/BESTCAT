@@ -68,19 +68,6 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
-    clubs: Club;
-    exhibitions: Exhibition;
-    judges: Judge;
-    owners: Owner;
-    'breed-groups': BreedGroup;
-    breeds: Breed;
-    cats: Cat;
-    entries: Entry;
-    rings: Ring;
-    calls: Call;
-    results: Result;
-    'breed-statistics': BreedStatistic;
-    'import-batches': ImportBatch;
     media: Media;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
@@ -90,19 +77,6 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
-    clubs: ClubsSelect<false> | ClubsSelect<true>;
-    exhibitions: ExhibitionsSelect<false> | ExhibitionsSelect<true>;
-    judges: JudgesSelect<false> | JudgesSelect<true>;
-    owners: OwnersSelect<false> | OwnersSelect<true>;
-    'breed-groups': BreedGroupsSelect<false> | BreedGroupsSelect<true>;
-    breeds: BreedsSelect<false> | BreedsSelect<true>;
-    cats: CatsSelect<false> | CatsSelect<true>;
-    entries: EntriesSelect<false> | EntriesSelect<true>;
-    rings: RingsSelect<false> | RingsSelect<true>;
-    calls: CallsSelect<false> | CallsSelect<true>;
-    results: ResultsSelect<false> | ResultsSelect<true>;
-    'breed-statistics': BreedStatisticsSelect<false> | BreedStatisticsSelect<true>;
-    'import-batches': ImportBatchesSelect<false> | ImportBatchesSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -149,11 +123,6 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
-  name: string;
-  role: 'admin' | 'club' | 'editor' | 'viewer' | 'judge' | 'steward' | 'chief-steward' | 'exhibitor';
-  club?: (number | null) | Club;
-  phone?: string | null;
-  active?: boolean | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -176,71 +145,11 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "clubs".
- */
-export interface Club {
-  id: number;
-  name: string;
-  code: string;
-  federation?: string | null;
-  country: string;
-  city?: string | null;
-  region?: string | null;
-  active?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "exhibitions".
- */
-export interface Exhibition {
-  id: number;
-  title: string;
-  slug: string;
-  club: number | Club;
-  startDate: string;
-  endDate: string;
-  licenseNumber?: string | null;
-  city: string;
-  country: string;
-  address?: string | null;
-  region?: string | null;
-  status: 'draft' | 'published' | 'live' | 'completed';
-  judges?: (number | Judge)[] | null;
-  catalog?: (number | null) | Media;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "judges".
- */
-export interface Judge {
-  id: number;
-  name: string;
-  country?: string | null;
-  email?: string | null;
-  phone?: string | null;
-  user?: (number | null) | User;
-  qualifications?:
-    | {
-        value: string;
-        id?: string | null;
-      }[]
-    | null;
-  active?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
   id: number;
   alt: string;
-  documentType?: ('catalog' | 'import' | 'report' | 'image' | 'other') | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -252,195 +161,6 @@ export interface Media {
   height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "owners".
- */
-export interface Owner {
-  id: number;
-  name: string;
-  country?: string | null;
-  email?: string | null;
-  phone?: string | null;
-  club?: (number | null) | Club;
-  user?: (number | null) | User;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "breed-groups".
- */
-export interface BreedGroup {
-  id: number;
-  name: string;
-  slug: string;
-  sortOrder: number;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "breeds".
- */
-export interface Breed {
-  id: number;
-  code: string;
-  name: string;
-  group: number | BreedGroup;
-  recognizedByWcf?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "cats".
- */
-export interface Cat {
-  id: number;
-  name: string;
-  wcfId?: string | null;
-  breed: number | Breed;
-  emsCode?: string | null;
-  colorDescription?: string | null;
-  sex: 'male' | 'female' | 'male-neuter' | 'female-spay' | 'unknown';
-  birthDate?: string | null;
-  sire?: string | null;
-  dam?: string | null;
-  owner: number | Owner;
-  registrationBook?: ('lo' | 'riex' | 'other') | null;
-  originCountry?: string | null;
-  sourceSystem?: ('bestcat' | 'wcf' | 'non-wcf' | 'manual') | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "entries".
- */
-export interface Entry {
-  id: number;
-  externalKey: string;
-  exhibition: number | Exhibition;
-  cat: number | Cat;
-  catalogNumber: number;
-  showClass: string;
-  emsCode?: string | null;
-  ringTypes?:
-    | {
-        value: string;
-        id?: string | null;
-      }[]
-    | null;
-  status: 'registered' | 'checked-in' | 'judging' | 'completed' | 'absent';
-  importBatch?: (number | null) | ImportBatch;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "import-batches".
- */
-export interface ImportBatch {
-  id: number;
-  key: string;
-  exhibition: number | Exhibition;
-  sourceName: string;
-  sourceType: 'csv' | 'excel' | 'pdf' | 'api';
-  sourceFile?: (number | null) | Media;
-  status: 'pending' | 'processing' | 'completed' | 'partial' | 'failed';
-  totalRows?: number | null;
-  successfulRows?: number | null;
-  failedRows?: number | null;
-  messages?:
-    | {
-        level: 'info' | 'warning' | 'error';
-        message: string;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "rings".
- */
-export interface Ring {
-  id: number;
-  name: string;
-  exhibition: number | Exhibition;
-  stage: 'table' | 'ring' | 'best-in-show';
-  category?: string | null;
-  judge?: (number | null) | Judge;
-  stewards?: (number | User)[] | null;
-  status?: ('planned' | 'open' | 'paused' | 'closed') | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "calls".
- */
-export interface Call {
-  id: number;
-  exhibition: number | Exhibition;
-  entry: number | Entry;
-  ring: number | Ring;
-  queuePosition?: number | null;
-  status: 'waiting' | 'called' | 'acknowledged' | 'in-judging' | 'completed' | 'absent';
-  calledAt?: string | null;
-  acknowledgedAt?: string | null;
-  completedAt?: string | null;
-  notes?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "results".
- */
-export interface Result {
-  id: number;
-  exhibition: number | Exhibition;
-  entry: number | Entry;
-  ring?: (number | null) | Ring;
-  judge?: (number | null) | Judge;
-  stage: 'table' | 'ring' | 'best-in-show';
-  award?: string | null;
-  placement?: number | null;
-  score?: number | null;
-  notes?: string | null;
-  published?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Ročné súhrny narodených, importovaných a registrovaných mačiek podľa klubu a plemena.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "breed-statistics".
- */
-export interface BreedStatistic {
-  id: number;
-  /**
-   * Vytvára sa automaticky z roku, klubu, plemena a regiónu.
-   */
-  key: string;
-  year: number;
-  club: number | Club;
-  breed: number | Breed;
-  region: string;
-  bornCount: number;
-  importedWcfCount: number;
-  importedNonWcfCount: number;
-  registeredLoCount: number;
-  registeredRiexCount: number;
-  importBatch?: (number | null) | ImportBatch;
-  notes?: string | null;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -469,58 +189,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
-      } | null)
-    | ({
-        relationTo: 'clubs';
-        value: number | Club;
-      } | null)
-    | ({
-        relationTo: 'exhibitions';
-        value: number | Exhibition;
-      } | null)
-    | ({
-        relationTo: 'judges';
-        value: number | Judge;
-      } | null)
-    | ({
-        relationTo: 'owners';
-        value: number | Owner;
-      } | null)
-    | ({
-        relationTo: 'breed-groups';
-        value: number | BreedGroup;
-      } | null)
-    | ({
-        relationTo: 'breeds';
-        value: number | Breed;
-      } | null)
-    | ({
-        relationTo: 'cats';
-        value: number | Cat;
-      } | null)
-    | ({
-        relationTo: 'entries';
-        value: number | Entry;
-      } | null)
-    | ({
-        relationTo: 'rings';
-        value: number | Ring;
-      } | null)
-    | ({
-        relationTo: 'calls';
-        value: number | Call;
-      } | null)
-    | ({
-        relationTo: 'results';
-        value: number | Result;
-      } | null)
-    | ({
-        relationTo: 'breed-statistics';
-        value: number | BreedStatistic;
-      } | null)
-    | ({
-        relationTo: 'import-batches';
-        value: number | ImportBatch;
       } | null)
     | ({
         relationTo: 'media';
@@ -573,11 +241,6 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  name?: T;
-  role?: T;
-  club?: T;
-  phone?: T;
-  active?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -598,241 +261,10 @@ export interface UsersSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "clubs_select".
- */
-export interface ClubsSelect<T extends boolean = true> {
-  name?: T;
-  code?: T;
-  federation?: T;
-  country?: T;
-  city?: T;
-  region?: T;
-  active?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "exhibitions_select".
- */
-export interface ExhibitionsSelect<T extends boolean = true> {
-  title?: T;
-  slug?: T;
-  club?: T;
-  startDate?: T;
-  endDate?: T;
-  licenseNumber?: T;
-  city?: T;
-  country?: T;
-  address?: T;
-  region?: T;
-  status?: T;
-  judges?: T;
-  catalog?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "judges_select".
- */
-export interface JudgesSelect<T extends boolean = true> {
-  name?: T;
-  country?: T;
-  email?: T;
-  phone?: T;
-  user?: T;
-  qualifications?:
-    | T
-    | {
-        value?: T;
-        id?: T;
-      };
-  active?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "owners_select".
- */
-export interface OwnersSelect<T extends boolean = true> {
-  name?: T;
-  country?: T;
-  email?: T;
-  phone?: T;
-  club?: T;
-  user?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "breed-groups_select".
- */
-export interface BreedGroupsSelect<T extends boolean = true> {
-  name?: T;
-  slug?: T;
-  sortOrder?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "breeds_select".
- */
-export interface BreedsSelect<T extends boolean = true> {
-  code?: T;
-  name?: T;
-  group?: T;
-  recognizedByWcf?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "cats_select".
- */
-export interface CatsSelect<T extends boolean = true> {
-  name?: T;
-  wcfId?: T;
-  breed?: T;
-  emsCode?: T;
-  colorDescription?: T;
-  sex?: T;
-  birthDate?: T;
-  sire?: T;
-  dam?: T;
-  owner?: T;
-  registrationBook?: T;
-  originCountry?: T;
-  sourceSystem?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "entries_select".
- */
-export interface EntriesSelect<T extends boolean = true> {
-  externalKey?: T;
-  exhibition?: T;
-  cat?: T;
-  catalogNumber?: T;
-  showClass?: T;
-  emsCode?: T;
-  ringTypes?:
-    | T
-    | {
-        value?: T;
-        id?: T;
-      };
-  status?: T;
-  importBatch?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "rings_select".
- */
-export interface RingsSelect<T extends boolean = true> {
-  name?: T;
-  exhibition?: T;
-  stage?: T;
-  category?: T;
-  judge?: T;
-  stewards?: T;
-  status?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "calls_select".
- */
-export interface CallsSelect<T extends boolean = true> {
-  exhibition?: T;
-  entry?: T;
-  ring?: T;
-  queuePosition?: T;
-  status?: T;
-  calledAt?: T;
-  acknowledgedAt?: T;
-  completedAt?: T;
-  notes?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "results_select".
- */
-export interface ResultsSelect<T extends boolean = true> {
-  exhibition?: T;
-  entry?: T;
-  ring?: T;
-  judge?: T;
-  stage?: T;
-  award?: T;
-  placement?: T;
-  score?: T;
-  notes?: T;
-  published?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "breed-statistics_select".
- */
-export interface BreedStatisticsSelect<T extends boolean = true> {
-  key?: T;
-  year?: T;
-  club?: T;
-  breed?: T;
-  region?: T;
-  bornCount?: T;
-  importedWcfCount?: T;
-  importedNonWcfCount?: T;
-  registeredLoCount?: T;
-  registeredRiexCount?: T;
-  importBatch?: T;
-  notes?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "import-batches_select".
- */
-export interface ImportBatchesSelect<T extends boolean = true> {
-  key?: T;
-  exhibition?: T;
-  sourceName?: T;
-  sourceType?: T;
-  sourceFile?: T;
-  status?: T;
-  totalRows?: T;
-  successfulRows?: T;
-  failedRows?: T;
-  messages?:
-    | T
-    | {
-        level?: T;
-        message?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
-  documentType?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
