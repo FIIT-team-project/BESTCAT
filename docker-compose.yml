@@ -39,6 +39,16 @@ services:
     ports:
       - '5432:5432'
 
+  adminer:
+    restart: unless-stopped
+    image: adminer:latest
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    depends_on:
+      - postgres
+    ports:
+      - '8080:8080'
+
 volumes:
   # data:
   pgdata:

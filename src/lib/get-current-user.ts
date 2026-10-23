@@ -1,0 +1,13 @@
+import 'server-only'
+
+import config from '@payload-config'
+import { headers } from 'next/headers'
+import { getPayload } from 'payload'
+import { cache } from 'react'
+
+export const getCurrentUser = cache(async () => {
+  const payload = await getPayload({ config })
+  const { user } = await payload.auth({ headers: await headers() })
+
+  return user
+})
