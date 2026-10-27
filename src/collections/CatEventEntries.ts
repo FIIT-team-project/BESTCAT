@@ -7,6 +7,7 @@ import {
   queueEntry,
   rateEntry,
   readEntries,
+  updateEntries,
 } from './access/shows'
 
 export const CatEventEntries: CollectionConfig = {
@@ -21,7 +22,7 @@ export const CatEventEntries: CollectionConfig = {
   access: {
     read: readEntries,
     create: createEntry,
-    update: readEntries,
+    update: updateEntries,
     delete: manageEntries,
   },
   indexes: [{ fields: ['catId', 'eventId'], unique: true }],

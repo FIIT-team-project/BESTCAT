@@ -8,6 +8,7 @@ const dirname = path.dirname(__filename)
 
 const nextConfig: NextConfig = {
   images: {
+    remotePatterns: [{ protocol: 'https', hostname: 'cdn2.thecatapi.com', pathname: '/**' }],
     localPatterns: [
       {
         pathname: '/api/media/file/**',

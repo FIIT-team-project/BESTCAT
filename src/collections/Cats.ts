@@ -17,6 +17,7 @@ export const Cats: CollectionConfig = {
   fields: [
     { name: 'wcfId', label: 'WCF ID', type: 'text' },
     { name: 'name', type: 'text' },
+    { name: 'imageUrl', type: 'text' },
     {
       name: 'birthday',
       type: 'date',

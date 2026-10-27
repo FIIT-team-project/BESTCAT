@@ -162,6 +162,7 @@ export interface Cat {
   id: number;
   wcfId?: string | null;
   name?: string | null;
+  imageUrl?: string | null;
   birthday?: string | null;
   country?: string | null;
   club?: string | null;
@@ -345,6 +346,7 @@ export interface UsersSelect<T extends boolean = true> {
 export interface CatsSelect<T extends boolean = true> {
   wcfId?: T;
   name?: T;
+  imageUrl?: T;
   birthday?: T;
   country?: T;
   club?: T;

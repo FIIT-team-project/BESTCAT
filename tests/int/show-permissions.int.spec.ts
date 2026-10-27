@@ -19,7 +19,7 @@ const entryB = { id: 201, eventId: eventB, catId: 301 }
 type RecordData = Record<string, unknown>
 
 // Apply Payload's equality/in/and/or constraints to two independent show fixtures.
-function matches(doc: RecordData, where: Where): boolean {
+function matches(doc: RecordData, where: Where = {}): boolean {
   return Object.entries(where).every(([path, condition]) => {
     if (path === 'and') return (condition as Where[]).every((item) => matches(doc, item))
     if (path === 'or') return (condition as Where[]).some((item) => matches(doc, item))
@@ -42,7 +42,14 @@ function request(id?: number): PayloadRequest {
         return { totalDocs: docs.filter((doc) => matches(doc, where)).length }
       }),
       find: vi.fn(async ({ collection, where }) => {
-        const docs = collection === 'events' ? [eventA, eventB] : []
+        const docs =
+          collection === 'events'
+            ? [eventA, eventB]
+            : collection === 'catOwners'
+              ? [{ id: 400, userId: 8, catId: 300 }]
+              : collection === 'catEventEntries'
+                ? [entryA, entryB]
+                : []
         return { docs: docs.filter((doc) => matches(doc, where)) }
       }),
     },
@@ -120,10 +127,26 @@ describe('Show administration boundaries', () => {
     }
   })
 
-  it('denies unassigned users and anonymous visitors access to events and entries', async () => {
+  it('lets owners browse public shows, events and entries without editing them', async () => {
+    for (const [collection, own, other] of [
+      [Shows, showA, showB],
+      [Events, eventA, eventB],
+      [CatEventEntries, entryA, entryB],
+    ] as const) {
+      expect(await allowed(collection, 'read', request(8), own)).toBe(true)
+      expect(await allowed(collection, 'read', request(8), other)).toBe(true)
+      expect(await allowed(collection, 'update', request(8), own)).toBe(false)
+      expect(await allowed(collection, 'delete', request(8), own)).toBe(false)
+    }
+    for (const name of ['rating', 'status', 'queuePosition']) {
+      expect(await fieldUpdate(CatEventEntries, name)({ req: request(8), doc: entryA })).toBe(false)
+    }
+  })
+
+  it('allows public reads while denying unassigned and anonymous entry writes', async () => {
     for (const req of [request(), request(6)]) {
-      expect(await allowed(Events, 'read', req, eventA)).toBe(false)
-      expect(await allowed(CatEventEntries, 'read', req, entryA)).toBe(false)
+      expect(await allowed(Events, 'read', req, eventA)).toBe(true)
+      expect(await allowed(CatEventEntries, 'read', req, entryA)).toBe(true)
       expect(await allowed(CatEventEntries, 'update', req, entryA)).toBe(false)
       expect(await allowed(CatEventEntries, 'delete', req, entryA)).toBe(false)
     }
@@ -169,11 +192,12 @@ describe('Event assignments and entry fields', () => {
   })
 
   it.each(['status', 'queuePosition'])(
-    'permits %s changes only for the steward or show administrators',
+    'permits %s changes for the assigned judge, steward or show administrators',
     async (name) => {
       const queue = fieldUpdate(CatEventEntries, name)
       expect(await queue({ req: request(5), doc: entryA })).toBe(true)
-      expect(await queue({ req: request(4), doc: entryA })).toBe(false)
+      expect(await queue({ req: request(4), doc: entryA })).toBe(true)
+      expect(await queue({ req: request(6), doc: entryA })).toBe(false)
       expect(await queue({ req: request(2), doc: entryA })).toBe(true)
       expect(await queue({ req: request(3), doc: entryA })).toBe(false)
     },
@@ -202,10 +226,10 @@ describe('Event assignments and entry fields', () => {
 describe('Cat visibility and active shows', () => {
   it('allows show administrators to read the shared cat catalogue', async () => {
     expect(await Cats.access!.read!({ req: request(2) })).toBe(true)
-    expect(await Cats.access!.read!({ req: request() })).toBe(false)
+    expect(await Cats.access!.read!({ req: request() })).toEqual({ id: { in: [300, 301] } })
   })
 
-  it('restricts ordinary users to owned cats and cats in assigned events', async () => {
+  it('restricts ordinary users to owned cats and cats entered in shows', async () => {
     const req = request(4)
     vi.mocked(req.payload.find)
       .mockResolvedValueOnce({ docs: [{ catId: 302 }] } as never)

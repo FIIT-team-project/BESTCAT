@@ -1,6 +1,6 @@
 import type { MigrateDownArgs, MigrateUpArgs } from '@payloadcms/db-postgres'
 import type { Where } from 'payload'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { down, up } from '@/migrations/seed'
 
@@ -15,10 +15,7 @@ const relationships: Record<string, Record<string, string>> = {
 
 function fixture() {
   const records: Record<string, Document[]> = Object.fromEntries(
-    ['users', 'cats', 'catOwners', 'shows', 'events', 'catEventEntries'].map((name) => [
-      name,
-      [],
-    ]),
+    ['users', 'cats', 'catOwners', 'shows', 'events', 'catEventEntries'].map((name) => [name, []]),
   )
   const req = { transactionID: 'seed-test-transaction' }
 
@@ -88,6 +85,68 @@ function fixture() {
 }
 
 describe('Sample data seed', () => {
+  const images = Array.from({ length: 150 }, (_, i) => ({
+    url: `https://cdn2.thecatapi.com/images/demo-${i}.jpg`,
+  }))
+
+  beforeEach(() => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: string) => {
+        const url = new URL(input)
+        const page = Number(url.searchParams.get('page'))
+        return { ok: true, json: async () => images.slice(page * 10, (page + 1) * 10) }
+      }),
+    )
+    vi.stubEnv('CAT_API_KEY', '')
+  })
+
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
+  })
+
+  it('assigns a distinct API image to every cat across authenticated pages', async () => {
+    vi.stubEnv('CAT_API_KEY', 'test-key')
+    const { records, args } = fixture()
+    await up(args)
+
+    expect(fetch).toHaveBeenCalledTimes(15)
+    expect(fetch).toHaveBeenCalledWith(
+      'https://api.thecatapi.com/v1/images/search?limit=100&mime_types=jpg,png&order=ASC&page=0',
+      expect.objectContaining({ headers: { 'x-api-key': 'test-key' } }),
+    )
+    expect(records.cats.every((cat) => images.some((image) => image.url === cat.imageUrl))).toBe(
+      true,
+    )
+    expect(new Set(records.cats.map((cat) => cat.imageUrl)).size).toBe(150)
+  })
+
+  it('rejects repeated API pages instead of silently reusing photos', async () => {
+    vi.mocked(fetch).mockImplementation(async () => Response.json([images[0]]))
+    const { payload, args } = fixture()
+    await expect(up(args)).rejects.toThrow('too few distinct')
+    expect(payload.create).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    { ok: false, status: 429 },
+    { ok: true, json: async () => [] },
+    { ok: true, json: async () => [{ url: 'javascript:alert(1)' }, null] },
+  ])(
+    'rejects failed or unusable image responses before inserting records: %j',
+    async (response) => {
+      vi.mocked(fetch).mockResolvedValue(
+        Response.json(response.json ? await response.json() : null, {
+          status: response.status ?? 200,
+        }),
+      )
+      const { payload, args } = fixture()
+      await expect(up(args)).rejects.toThrow('The Cat API')
+      expect(payload.create).not.toHaveBeenCalled()
+    },
+  )
+
   it('creates the requested counts and complete relationships in one migration request', async () => {
     const { records, args } = fixture()
     await up(args)
@@ -111,9 +170,7 @@ describe('Sample data seed', () => {
     expect(
       records.cats.every((cat) => records.catOwners.some((link) => link.catId === cat.id)),
     ).toBe(true)
-    expect(new Set(records.catOwners.map((link) => `${link.userId}:${link.catId}`)).size).toBe(
-      160,
-    )
+    expect(new Set(records.catOwners.map((link) => `${link.userId}:${link.catId}`)).size).toBe(160)
     expect(
       new Set(records.catEventEntries.map((entry) => `${entry.catId}:${entry.eventId}`)).size,
     ).toBe(540)

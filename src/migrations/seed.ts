@@ -1,3 +1,4 @@
+import { fetchCatImages } from '@/lib/fetchCatImages'
 import type { MigrateDownArgs, MigrateUpArgs } from '@payloadcms/db-postgres'
 import type { User } from '@/payload-types'
 
@@ -60,6 +61,9 @@ const eventNames = Array.from({ length: 3 }, (_, show) =>
 ).flat()
 
 export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
+  // Resolve all unique photos before creating any records.
+  const imageUrls = await fetchCatImages(catIDs.length)
+
   const createUser = (
     data: Pick<User, 'email' | 'name' | 'judgingQualifications'> & {
       role?: User['role']
@@ -117,6 +121,7 @@ export async function up({ payload, req }: MigrateUpArgs): Promise<void> {
       data: {
         wcfId: catIDs[i],
         name: `${catNames[variation]} of ${catteries[i % catteries.length]}`,
+        imageUrl: imageUrls[i],
         birthday: new Date(Date.UTC(2022 + (i % 4), i % 12, 1 + (i % 28))).toISOString(),
         country: countries[i % countries.length],
         club: `Demo Cat Club ${countries[i % countries.length]}`,

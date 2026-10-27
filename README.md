@@ -36,6 +36,17 @@ To do so, follow these steps:
 
 ## How it works
 
+The sample-data seeder fetches distinct photos from
+[The Cat API](https://docs.thecatapi.com/docs/examples/images) and stores a remote
+`imageUrl` on every demo cat. Set the optional `CAT_API_KEY` in your environment to
+authenticate the requests. The seeder paginates and deduplicates results, requiring
+a different photo for every cat before creating records. Photos are illustrative
+and are not matched to the fictional cats' breeds or colours.
+
+To replace photos on existing demo cats without recreating their entries, run
+`pnpm exec tsx scripts/refresh-cat-images.ts`. This only updates `imageUrl` on cats
+with a `DEMO-0000` style WCF ID.
+
 The Payload config is tailored specifically to the needs of most websites. It is pre-configured in the following ways:
 
 ### Collections

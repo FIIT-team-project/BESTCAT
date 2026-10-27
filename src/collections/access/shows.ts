@@ -41,35 +41,9 @@ export function eventScope(userID: number, prefix = ''): Where {
   }
 }
 
-export const readShows: Access = async ({ req }) => {
-  if (hasRole(req.user, 'admin')) return true
-  if (!req.user) return false
-
-  const { docs } = await req.payload.find({
-    collection: 'events',
-    where: {
-      or: [{ judgeId: { equals: req.user.id } }, { stewardId: { equals: req.user.id } }],
-    },
-    select: { showId: true },
-    depth: 0,
-    pagination: false,
-    limit: 0,
-    overrideAccess: true,
-    req,
-  })
-  const scope: Where = {
-    or: [
-      { chiefStewardId: { equals: req.user.id } },
-      { id: { in: docs.map((event) => relationshipID(event.showId)) } },
-    ],
-  }
-  return scope
-}
-
-export const readEvents: Access = ({ req: { user } }) => {
-  if (hasRole(user, 'admin')) return true
-  return user ? eventScope(user.id) : false
-}
+// Show catalogues, events and their entries are public; writes remain staff-only.
+export const readShows: Access = () => true
+export const readEvents: Access = () => true
 
 export const manageEvents: Access = ({ req: { user } }) => {
   if (hasRole(user, 'admin')) return true
@@ -94,7 +68,9 @@ export const createEvent: Access = async ({ req, data }) => {
   return totalDocs > 0
 }
 
-export const readEntries: Access = ({ req: { user } }) => {
+export const readEntries: Access = () => true
+
+export const updateEntries: Access = ({ req: { user } }) => {
   if (hasRole(user, 'admin')) return true
   return user ? eventScope(user.id, 'eventId.') : false
 }
@@ -116,6 +92,7 @@ async function canEditEntry(
 
   const permissions: Where[] = [{ 'showId.chiefStewardId': { equals: req.user.id } }]
   if (staff) permissions.push({ [staff]: { equals: req.user.id } })
+  if (staff === 'stewardId') permissions.push({ judgeId: { equals: req.user.id } })
 
   const { totalDocs } = await req.payload.count({
     collection: 'events',
