@@ -68,6 +68,11 @@ export interface Config {
   blocks: {};
   collections: {
     users: User;
+    cats: Cat;
+    catOwners: CatOwner;
+    shows: Show;
+    events: Event;
+    catEventEntries: CatEventEntry;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -76,6 +81,11 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
+    cats: CatsSelect<false> | CatsSelect<true>;
+    catOwners: CatOwnersSelect<false> | CatOwnersSelect<true>;
+    shows: ShowsSelect<false> | ShowsSelect<true>;
+    events: EventsSelect<false> | EventsSelect<true>;
+    catEventEntries: CatEventEntriesSelect<false> | CatEventEntriesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -121,7 +131,9 @@ export interface UserAuthOperations {
  */
 export interface User {
   id: number;
-  roles: ('user' | 'admin')[];
+  name?: string | null;
+  judgingQualifications?: string | null;
+  role: 'user' | 'admin';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -141,6 +153,74 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cats".
+ */
+export interface Cat {
+  id: number;
+  wcfId?: string | null;
+  name?: string | null;
+  birthday?: string | null;
+  country?: string | null;
+  club?: string | null;
+  sex?: string | null;
+  breed?: string | null;
+  color?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "catOwners".
+ */
+export interface CatOwner {
+  id: number;
+  userId: number | User;
+  catId: number | Cat;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shows".
+ */
+export interface Show {
+  id: number;
+  chiefStewardId: number | User;
+  isActive?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events".
+ */
+export interface Event {
+  id: number;
+  showId: number | Show;
+  judgeId: number | User;
+  stewardId: number | User;
+  name?: string | null;
+  eventType?: string | null;
+  eventRating?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "catEventEntries".
+ */
+export interface CatEventEntry {
+  id: number;
+  catId: number | Cat;
+  eventId: number | Event;
+  status?: string | null;
+  queuePosition?: number | null;
+  rating?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -165,10 +245,31 @@ export interface PayloadKv {
  */
 export interface PayloadLockedDocument {
   id: number;
-  document?: {
-    relationTo: 'users';
-    value: number | User;
-  } | null;
+  document?:
+    | ({
+        relationTo: 'users';
+        value: number | User;
+      } | null)
+    | ({
+        relationTo: 'cats';
+        value: number | Cat;
+      } | null)
+    | ({
+        relationTo: 'catOwners';
+        value: number | CatOwner;
+      } | null)
+    | ({
+        relationTo: 'shows';
+        value: number | Show;
+      } | null)
+    | ({
+        relationTo: 'events';
+        value: number | Event;
+      } | null)
+    | ({
+        relationTo: 'catEventEntries';
+        value: number | CatEventEntry;
+      } | null);
   globalSlug?: string | null;
   user: {
     relationTo: 'users';
@@ -216,7 +317,9 @@ export interface PayloadMigration {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  roles?: T;
+  name?: T;
+  judgingQualifications?: T;
+  role?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -234,6 +337,69 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "cats_select".
+ */
+export interface CatsSelect<T extends boolean = true> {
+  wcfId?: T;
+  name?: T;
+  birthday?: T;
+  country?: T;
+  club?: T;
+  sex?: T;
+  breed?: T;
+  color?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "catOwners_select".
+ */
+export interface CatOwnersSelect<T extends boolean = true> {
+  userId?: T;
+  catId?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "shows_select".
+ */
+export interface ShowsSelect<T extends boolean = true> {
+  chiefStewardId?: T;
+  isActive?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "events_select".
+ */
+export interface EventsSelect<T extends boolean = true> {
+  showId?: T;
+  judgeId?: T;
+  stewardId?: T;
+  name?: T;
+  eventType?: T;
+  eventRating?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "catEventEntries_select".
+ */
+export interface CatEventEntriesSelect<T extends boolean = true> {
+  catId?: T;
+  eventId?: T;
+  status?: T;
+  queuePosition?: T;
+  rating?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

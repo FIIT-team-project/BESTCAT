@@ -31,7 +31,7 @@ export default function LoginPage() {
                   <div className="flex flex-col items-center gap-2 text-center">
                     <h1 className="text-2xl font-bold">BESTCAT</h1>
                     <p className="text-balance text-muted-foreground">
-                      Login to your Acme Inc account
+                      Log in to your BESTCAT account
                     </p>
                   </div>
                   <Field>

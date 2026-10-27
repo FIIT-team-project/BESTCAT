@@ -1,6 +1,7 @@
 import type { CollectionConfig } from 'payload'
 import { adminsOrThisUser } from './access/adminOrThisUser'
 import { admins } from './access/admins'
+import { showAdministrators } from './access/shows'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -14,15 +15,23 @@ export const Users: CollectionConfig = {
     update: admins,
     delete: admins,
     unlock: admins,
-    admin: admins,
+    admin: showAdministrators,
   },
   fields: [
     {
-      name: 'roles',
+      name: 'name',
+      type: 'text',
+    },
+    {
+      name: 'judgingQualifications',
+      type: 'textarea',
+      access: { create: admins, update: admins },
+    },
+    {
+      name: 'role',
       type: 'select',
-      hasMany: true,
       required: true,
-      defaultValue: ['user'],
+      defaultValue: 'user',
       saveToJWT: true,
       options: [
         { label: 'User', value: 'user' },

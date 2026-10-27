@@ -1,9 +1,11 @@
 import type { Access } from 'payload'
 import { hasRole } from './roles'
+import { isShowAdministrator } from './shows'
 
-export const adminsOrThisUser: Access = ({ req: { user } }) => {
+export const adminsOrThisUser: Access = async ({ req }) => {
+  const { user } = req
   if (user) {
-    if (hasRole(user, 'admin')) {
+    if (hasRole(user, 'admin') || (await isShowAdministrator(req))) {
       return true
     }
 

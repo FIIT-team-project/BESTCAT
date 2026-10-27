@@ -1,12 +1,12 @@
-import { getCurrentUser } from '@/lib/get-current-user'
-import { redirect } from 'next/navigation'
+import { requireUser } from '@/lib/getCurrentUser'
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser()
+  const user = await requireUser()
 
-  if (!user) {
-    redirect('/auth/login')
-  }
-
-  return <>{children}</>
+  return (
+    <>
+      <div>You are: {user.email}</div>
+      {children}
+    </>
+  )
 }
