@@ -1,5 +1,3 @@
-/* THIS FILE WAS GENERATED AUTOMATICALLY BY PAYLOAD. */
-/* DO NOT MODIFY IT BECAUSE IT COULD BE REWRITTEN AT ANY TIME. */
 import config from '@payload-config'
 import '@payloadcms/next/css'
 import {
@@ -11,9 +9,11 @@ import {
   REST_PUT,
 } from '@payloadcms/next/routes'
 
-export const GET = REST_GET(config)
-export const POST = REST_POST(config)
-export const DELETE = REST_DELETE(config)
-export const PATCH = REST_PATCH(config)
-export const PUT = REST_PUT(config)
-export const OPTIONS = REST_OPTIONS(config)
+import { withAdminREST } from '@/collections/access/withAdminREST'
+
+export const GET = withAdminREST(REST_GET(config))
+export const POST = withAdminREST(REST_POST(config))
+export const DELETE = withAdminREST(REST_DELETE(config))
+export const PATCH = withAdminREST(REST_PATCH(config))
+export const PUT = withAdminREST(REST_PUT(config))
+export const OPTIONS = withAdminREST(REST_OPTIONS(config))

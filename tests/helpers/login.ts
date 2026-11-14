@@ -1,5 +1,4 @@
 import type { Page } from '@playwright/test'
-import { expect } from '@playwright/test'
 
 export interface LoginOptions {
   page: Page
@@ -25,7 +24,4 @@ export async function login({
   await page.click('button[type="submit"]')
 
   await page.waitForURL(`${serverURL}/admin`)
-
-  const dashboardArtifact = page.locator('span[title="Dashboard"]')
-  await expect(dashboardArtifact).toBeVisible()
 }

@@ -1,41 +1,131 @@
-import { test, expect, Page } from '@playwright/test'
+import { test, expect } from '@playwright/test'
+import { randomUUID } from 'node:crypto'
+import { getPayload, type Payload } from 'payload'
+import config from '../../src/payload.config'
+import type { User } from '../../src/payload-types'
 import { login } from '../helpers/login'
-import { seedTestUser, cleanupTestUser, testUser } from '../helpers/seedUser'
+import { seedTestAdmin, cleanupTestAdmin, testAdmin } from '../helpers/seedAdmin'
 
-test.describe('Admin Panel', () => {
-  let page: Page
+const serverURL = 'http://localhost:3000'
 
-  test.beforeAll(async ({ browser }, testInfo) => {
-    await seedTestUser()
+test.describe('Admin access', () => {
+  let payload: Payload
+  let user: User
+  let userToken: string
+  let adminToken: string
 
-    const context = await browser.newContext()
-    page = await context.newPage()
+  test.beforeAll(async () => {
+    payload = await getPayload({ config })
+    await seedTestAdmin()
 
-    await login({ page, user: testUser })
+    const password = 'test-password'
+    user = await payload.create({
+      collection: 'users',
+      data: {
+        email: `e2e-user-${randomUUID()}@example.com`,
+        password,
+        name: 'Test API user',
+      },
+    })
+
+    const userLogin = await payload.login({
+      collection: 'users',
+      data: { email: user.email, password },
+    })
+    const adminLogin = await payload.login({ collection: 'admins', data: testAdmin })
+    if (!userLogin.token || !adminLogin.token) {
+      throw new Error('Test accounts must have valid authentication tokens.')
+    }
+    userToken = userLogin.token
+    adminToken = adminLogin.token
   })
 
   test.afterAll(async () => {
-    await cleanupTestUser()
+    try {
+      if (user) await payload.delete({ collection: 'users', id: user.id })
+      await cleanupTestAdmin()
+    } finally {
+      await payload?.destroy()
+    }
   })
 
-  test('can navigate to dashboard', async () => {
-    await page.goto('http://localhost:3000/admin')
-    await expect(page).toHaveURL('http://localhost:3000/admin')
-    const dashboardArtifact = page.locator('span[title="Dashboard"]').first()
-    await expect(dashboardArtifact).toBeVisible()
+  test('signs in through the dashboard and loads protected user data', async ({ page }) => {
+    // The dev server compiles and hydrates Payload's admin UI on the first visit.
+    test.slow()
+    await login({ page, user: testAdmin })
+
+    await page.goto(`${serverURL}/admin/collections/users`)
+    await expect(page.getByRole('heading', { name: 'Users', exact: true })).toBeVisible()
+    await expect(page.getByRole('link', { name: user.email, exact: true })).toBeVisible()
   })
 
-  test('can navigate to list view', async () => {
-    await page.goto('http://localhost:3000/admin/collections/users')
-    await expect(page).toHaveURL('http://localhost:3000/admin/collections/users')
-    const listViewArtifact = page.locator('h1', { hasText: 'Users' }).first()
-    await expect(listViewArtifact).toBeVisible()
+  for (const identity of ['anonymous', 'application user'] as const) {
+    test(`denies REST access to an ${identity}`, async ({ request }) => {
+      const headers: Record<string, string> =
+        identity === 'application user' ? { Authorization: `JWT ${userToken}` } : {}
+
+      // Each method is exported separately by the REST route.
+      for (const method of ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS']) {
+        const response = await request.fetch(`${serverURL}/api/users`, { method, headers })
+        expect(response.status(), `${method} /api/users`).toBe(403)
+      }
+
+      for (const path of [
+        '/admins',
+        `/users/${user.id}`,
+        '/cats',
+        '/shows',
+        '/events',
+        '/media',
+        '/media/file/test.png',
+        '/access',
+      ]) {
+        const response = await request.get(`${serverURL}/api${path}`, { headers })
+        expect(response.status(), `GET /api${path}`).toBe(403)
+      }
+
+      for (const path of ['/users/login', '/users/first-register']) {
+        const response = await request.post(`${serverURL}/api${path}`, {
+          headers,
+          data: { email: user.email, password: 'test-password' },
+        })
+        expect(response.status(), `POST /api${path}`).toBe(403)
+      }
+    })
+  }
+
+  test('keeps GraphQL and its playground disabled for every identity', async ({ request }) => {
+    const identities: [string, Record<string, string>][] = [
+      ['anonymous', {}],
+      ['application user', { Authorization: `JWT ${userToken}` }],
+      ['admin', { Authorization: `JWT ${adminToken}` }],
+    ]
+
+    for (const [identity, headers] of identities) {
+      for (const path of ['/graphql', '/graphql-playground']) {
+        for (const method of ['GET', 'POST']) {
+          const response = await request.fetch(`${serverURL}/api${path}`, { method, headers })
+          expect(response.status(), `${identity}: ${method} /api${path}`).toBe(404)
+        }
+      }
+    }
   })
 
-  test('can navigate to edit view', async () => {
-    await page.goto('http://localhost:3000/admin/collections/users/create')
-    await expect(page).toHaveURL(/\/admin\/collections\/users\/[a-zA-Z0-9-_]+/)
-    const editViewArtifact = page.locator('input[name="email"]')
-    await expect(editViewArtifact).toBeVisible()
+  test('preserves admin login and cookie-authenticated REST access', async ({ request }) => {
+    const session = await request.get(`${serverURL}/api/admins/me`)
+    expect(session.status()).toBe(200)
+    expect(await session.json()).toMatchObject({ user: null })
+
+    const response = await request.post(`${serverURL}/api/admins/login`, { data: testAdmin })
+    expect(response.status()).toBe(200)
+    expect(await response.json()).toMatchObject({
+      user: { email: testAdmin.email, collection: 'admins' },
+    })
+
+    const users = await request.get(`${serverURL}/api/users`)
+    expect(users.status()).toBe(200)
+    expect(await users.json()).toMatchObject({
+      docs: expect.arrayContaining([expect.objectContaining({ id: user.id, email: user.email })]),
+    })
   })
 })

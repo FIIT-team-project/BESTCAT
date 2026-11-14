@@ -6,8 +6,19 @@ export const Users: CollectionConfig = {
     useAsTitle: 'email',
   },
   auth: true,
+  access: {
+    admin: () => false,
+  },
   fields: [
-    // Email added by default
-    // Add more fields as needed
+    // Email and password are provided by Payload authentication.
+    {
+      name: 'name',
+      type: 'text',
+      required: true,
+    },
+    {
+      name: 'phone_number',
+      type: 'text',
+    },
   ],
 }
