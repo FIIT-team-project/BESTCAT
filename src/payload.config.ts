@@ -1,63 +1,59 @@
-import { postgresAdapter } from '@payloadcms/db-postgres'
+import { sqliteAdapter } from '@payloadcms/db-sqlite'
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import path from 'path'
 import { buildConfig } from 'payload'
+import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 
-import { Media } from '@/collections/Media'
-import { Users } from '@/collections/Users'
-import { BreedStatistics } from '@/collections/BreedStatistics'
-import {
-  BreedGroups,
-  Breeds,
-  Calls,
-  Cats,
-  Clubs,
-  Entries,
-  Exhibitions,
-  ImportBatches,
-  Judges,
-  Owners,
-  Results,
-  Rings,
-} from '@/collections/domain'
+import { Users } from './collections/Users'
+import { Admins } from './collections/Admins'
+import { Media } from './collections/Media'
+import { Cats } from './collections/Cats'
+import { Shows } from './collections/Shows'
+import { Events } from './collections/Events'
+import { CatEventEntries } from './collections/CatEventEntries'
 
-const dirname = path.dirname(fileURLToPath(import.meta.url))
-const databaseSslMode = process.env.DATABASE_SSL || 'disable'
+const filename = fileURLToPath(import.meta.url)
+const dirname = path.dirname(filename)
 
 export default buildConfig({
   admin: {
-    user: Users.slug,
-    importMap: { baseDir: path.resolve(dirname) },
-    meta: { titleSuffix: '— BESTCAT CMS' },
+    user: Admins.slug,
+    importMap: {
+      baseDir: path.resolve(dirname),
+    },
   },
-  collections: [
-    Users,
-    Clubs,
-    Exhibitions,
-    Judges,
-    Owners,
-    BreedGroups,
-    Breeds,
-    Cats,
-    Entries,
-    Rings,
-    Calls,
-    Results,
-    BreedStatistics,
-    ImportBatches,
-    Media,
-  ],
+  collections: [Admins, Users, Media, Cats, Shows, Events, CatEventEntries],
+  graphQL: {
+    disable: true,
+  },
   editor: lexicalEditor(),
+  email: process.env.SMTP_HOST
+    ? nodemailerAdapter({
+        defaultFromAddress: process.env.EMAIL_FROM_ADDRESS || '',
+        defaultFromName: process.env.EMAIL_FROM_NAME || '',
+        transportOptions: {
+          host: process.env.SMTP_HOST,
+          port: Number(process.env.SMTP_PORT || 465),
+          secure: (process.env.SMTP_SECURE || 'true') === 'true',
+          auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+          },
+        },
+      })
+    : undefined,
   secret: process.env.PAYLOAD_SECRET || '',
-  typescript: { outputFile: path.resolve(dirname, 'payload-types.ts') },
-  db: postgresAdapter({
-    pool: {
-      connectionString: process.env.DATABASE_URL || '',
-      max: Number(process.env.DATABASE_POOL_SIZE || 10),
-      ssl: databaseSslMode === 'disable' ? false : { rejectUnauthorized: databaseSslMode === 'verify-full' },
+  serverURL: process.env.SERVER_URL,
+  typescript: {
+    outputFile: path.resolve(dirname, 'payload-types.ts'),
+  },
+  db: sqliteAdapter({
+    client: {
+      url: process.env.DATABASE_URL || 'file:./payload.db',
     },
   }),
   sharp,
+  plugins: [],
 })

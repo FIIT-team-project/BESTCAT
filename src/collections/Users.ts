@@ -1,47 +1,39 @@
-import { APIError, type CollectionConfig } from 'payload'
-
-import { adminOnly, readOwnUser, roleOptions, updateOwnUser } from '@/access/roles'
+import type { CollectionConfig } from 'payload'
 
 export const Users: CollectionConfig = {
   slug: 'users',
-  labels: { singular: 'Používateľ', plural: 'Používatelia' },
-  auth: {
-    tokenExpiration: 60 * 60 * 12,
-    cookies: { secure: process.env.NODE_ENV === 'production', sameSite: 'Lax' },
-  },
   admin: {
-    useAsTitle: 'name',
-    defaultColumns: ['name', 'email', 'role', 'club'],
-    group: 'Prístup',
+    useAsTitle: 'email',
+  },
+  auth: {
+    forgotPassword: {
+      generateEmailHTML: ({ req, token } = {}) => {
+        if (!req) throw new Error('A Payload request is required to generate a reset email.')
+
+        const url = new URL(
+          '/reset-password',
+          req.payload.config.serverURL || process.env.SERVER_URL || 'http://localhost:3000',
+        )
+        url.searchParams.set('token', token || '')
+        return `${req.t('authentication:youAreReceivingResetPassword')}
+    <a href="${url.toString()}">${url.toString()}</a>
+    ${req.t('authentication:youDidNotRequestPassword')}`
+      },
+    },
   },
   access: {
-    create: adminOnly,
-    read: readOwnUser,
-    update: updateOwnUser,
-    delete: adminOnly,
-    admin: ({ req }) => ['admin', 'club', 'editor'].includes((req.user as { role?: string } | null)?.role ?? ''),
-  },
-  hooks: {
-    beforeLogin: [({ user }) => {
-      if ((user as { active?: boolean }).active === false) {
-        throw new APIError('Tento používateľský účet je deaktivovaný.', 403, null, true)
-      }
-      return user
-    }],
+    admin: () => false,
   },
   fields: [
-    { name: 'name', label: 'Meno', type: 'text', required: true },
+    // Email and password are provided by Payload authentication.
     {
-      name: 'role',
-      label: 'Rola',
-      type: 'select',
+      name: 'name',
+      type: 'text',
       required: true,
-      defaultValue: 'viewer',
-      options: [...roleOptions],
-      access: { update: ({ req }) => (req.user as { role?: string } | null)?.role === 'admin' },
     },
-    { name: 'club', label: 'Klub', type: 'relationship', relationTo: 'clubs' },
-    { name: 'phone', label: 'Telefón', type: 'text' },
-    { name: 'active', label: 'Aktívny účet', type: 'checkbox', defaultValue: true },
+    {
+      name: 'phone_number',
+      type: 'text',
+    },
   ],
 }
