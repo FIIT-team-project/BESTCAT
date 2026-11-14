@@ -45,6 +45,7 @@ export default buildConfig({
       })
     : undefined,
   secret: process.env.PAYLOAD_SECRET || '',
+  serverURL: process.env.SERVER_URL,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
