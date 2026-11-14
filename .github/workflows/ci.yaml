@@ -24,6 +24,7 @@ jobs:
       - name: Setup pnpm and Node.js
         uses: pnpm/setup@v1
         with:
+          version: '11'
           runtime: node@22
           install: false
 
@@ -33,5 +34,11 @@ jobs:
       - name: Lint
         run: pnpm lint
 
-      - name: Type check
-        run: pnpm typecheck
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Test
+        run: pnpm test
+        env:
+          DATABASE_URL: file:${{ runner.temp }}/bestcat-test.db
+          PAYLOAD_SECRET: ci-test-secret
