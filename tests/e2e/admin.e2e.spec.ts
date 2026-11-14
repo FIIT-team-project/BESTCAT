@@ -59,8 +59,45 @@ test.describe('Admin access', () => {
     await expect(page.getByRole('link', { name: user.email, exact: true })).toBeVisible()
   })
 
+  test('logs a regular user out from the admin access-denied screen', async ({ page, context }) => {
+    test.slow()
+    const session = await payload.login({
+      collection: 'users',
+      data: { email: user.email, password: 'test-password' },
+    })
+    await context.addCookies([
+      {
+        name: `${payload.config.cookiePrefix}-token`,
+        value: session.token!,
+        url: serverURL,
+        httpOnly: true,
+        sameSite: 'Lax',
+      },
+    ])
+
+    await page.goto(`${serverURL}/admin`)
+    await expect(page.getByRole('heading', { name: /Unauthorized/ })).toBeVisible()
+    await page.getByRole('link', { name: 'Log out', exact: true }).click()
+    await expect(page).toHaveURL(`${serverURL}/admin/login`)
+
+    const auth = await payload.auth({
+      headers: new Headers({ Authorization: `JWT ${session.token}` }),
+    })
+    expect(auth.user).toBeNull()
+    expect(
+      (await context.cookies()).find(({ name }) => name === `${payload.config.cookiePrefix}-token`),
+    ).toBeUndefined()
+
+    await page.goto(`${serverURL}/admin`)
+    await expect(page).toHaveURL(`${serverURL}/admin/login`)
+
+    await login({ page, user: testAdmin })
+    await page.goto(`${serverURL}/admin/logout`)
+    await expect(page).toHaveURL(`${serverURL}/admin/login`)
+  })
+
   for (const identity of ['anonymous', 'application user'] as const) {
-    test(`denies REST access to an ${identity}`, async ({ request }) => {
+    test(`denies collection REST access to an ${identity}`, async ({ request }) => {
       const headers: Record<string, string> =
         identity === 'application user' ? { Authorization: `JWT ${userToken}` } : {}
 
@@ -84,7 +121,7 @@ test.describe('Admin access', () => {
         expect(response.status(), `GET /api${path}`).toBe(403)
       }
 
-      for (const path of ['/users/login', '/users/first-register']) {
+      for (const path of ['/users/first-register']) {
         const response = await request.post(`${serverURL}/api${path}`, {
           headers,
           data: { email: user.email, password: 'test-password' },
@@ -93,6 +130,34 @@ test.describe('Admin access', () => {
       }
     })
   }
+
+  test('allows regular user authentication through REST without granting collection access', async ({
+    request,
+  }) => {
+    const response = await request.post(`${serverURL}/api/users/login`, {
+      data: { email: user.email, password: 'test-password' },
+    })
+    expect(response.status()).toBe(200)
+    expect(await response.json()).toMatchObject({
+      user: { id: user.id, collection: 'users' },
+    })
+
+    const session = await request.get(`${serverURL}/api/users/me`)
+    expect(session.status()).toBe(200)
+    expect(await session.json()).toMatchObject({ user: { id: user.id, collection: 'users' } })
+    expect((await request.get(`${serverURL}/api/admins/me`)).status()).toBe(403)
+    expect((await request.post(`${serverURL}/api/admins/logout`)).status()).toBe(403)
+
+    const refreshed = await request.post(`${serverURL}/api/users/refresh-token`)
+    expect(refreshed.status()).toBe(200)
+    expect(await refreshed.json()).toMatchObject({ user: { id: user.id, collection: 'users' } })
+
+    expect((await request.get(`${serverURL}/api/users`)).status()).toBe(403)
+    expect((await request.post(`${serverURL}/api/users/logout`)).status()).toBe(200)
+
+    const loggedOut = await request.get(`${serverURL}/api/users/me`)
+    expect(await loggedOut.json()).toMatchObject({ user: null })
+  })
 
   test('keeps GraphQL and its playground disabled for every identity', async ({ request }) => {
     const identities: [string, Record<string, string>][] = [

@@ -50,7 +50,7 @@
     display: block;
   }
 
-  h1 {
+  .home h1 {
     margin: 40px 0;
     font-size: 64px;
     line-height: 70px;
@@ -73,7 +73,7 @@
     }
   }
 
-  p {
+  .home p {
     margin: 24px 0;
 
     @media (max-width: 1024px) {
@@ -81,7 +81,7 @@
     }
   }
 
-  a {
+  .home a {
     color: currentColor;
 
     &:focus {
