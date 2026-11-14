@@ -42,13 +42,13 @@ next-env.d.ts
 
 /media
 
+# SQLite databases and journal files
+*.db
+*.db-*
+
 # Playwright
 node_modules/
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-
-
-# Local runtime data 
-/data/

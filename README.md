@@ -1,24 +1,18 @@
 ## Development
 
-### App
+### Running payload
 
-Install node and pnpm locally
+Install Node.js and pnpm locally.
 
-```
-# Install dependencies
+```sh
 pnpm i
+cp .env.example .env
 ```
 
-```
-# Run locally
+Start the dev sever:
+
+```sh
 pnpm dev
 ```
 
-### Database
-
-Install docker
-
-```
-# Run container
-docker compose up
-```
+Open `http://localhost:3000` for the frontend or `http://localhost:3000/admin` for the admin dashboard.
