@@ -9,6 +9,8 @@ pnpm i
 cp .env.example .env
 ```
 
+For development, the recommended setup is to leave `SMTP_HOST` unset, emails will be written to the console.
+
 Start the dev sever:
 
 ```sh

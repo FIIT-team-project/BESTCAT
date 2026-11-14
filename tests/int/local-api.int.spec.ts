@@ -1,6 +1,5 @@
 // @vitest-environment node
 
-import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
@@ -10,13 +9,15 @@ import {
   Forbidden,
   getAccessResults,
   getPayload,
+  handleEndpoints,
   type Payload,
   registerFirstUserOperation,
 } from 'payload'
 import config from '@/payload.config'
 import type { Admin, Show, User } from '@/payload-types'
+import { withAdminREST } from '@/collections/access/withAdminREST'
 
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 describe('Local API', () => {
   let payload: Payload
@@ -49,9 +50,9 @@ describe('Local API', () => {
         secret: 'integration-test-secret',
         db: {
           ...payloadConfig.db,
-          ...sqliteAdapter({
-            client: { url: `file:${path.join(databaseDir, 'payload.db')}` },
-            transactionOptions: {},
+          init: (args) => ({
+            ...payloadConfig.db.init(args),
+            clientConfig: { url: `file:${path.join(databaseDir, 'payload.db')}` },
           }),
         },
       },
@@ -213,6 +214,65 @@ describe('Local API', () => {
         req: await createLocalReq({}, payload),
       }),
     ).rejects.toBeInstanceOf(Forbidden)
+  })
+
+  it('resets an admin password through public REST endpoints while retaining request throttling', async () => {
+    const resetAdmin = await payload.create({
+      collection: 'admins',
+      data: { email: 'reset-admin@example.com', password: 'old-password' },
+    })
+    const sendEmail = vi.spyOn(payload.email, 'sendEmail').mockResolvedValue(undefined)
+    const handler = withAdminREST((request) =>
+      handleEndpoints({
+        config: payload.config,
+        payloadInstanceCacheKey: databaseDir,
+        request,
+      }),
+    )
+    const post = (action: string, data: Record<string, string>) =>
+      handler(
+        new Request(`http://localhost:3000/api/admins/${action}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', host: 'localhost:3000' },
+          body: JSON.stringify(data),
+        }),
+        { params: Promise.resolve({ slug: ['admins', action] }) },
+      )
+
+    try {
+      const requested = await post('forgot-password', { email: resetAdmin.email })
+      expect(requested.status, await requested.text()).toBe(200)
+      expect(sendEmail).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ to: resetAdmin.email, html: expect.any(String) }),
+      )
+
+      const html = String(sendEmail.mock.calls[0][0].html)
+      const resetLink = html.match(/href="([^"]+)"/)?.[1]
+      expect(resetLink).toBeTruthy()
+      const token = new URL(resetLink!, 'http://localhost:3000').pathname.split('/').pop()!
+
+      const repeated = await post('forgot-password', { email: resetAdmin.email })
+      expect(repeated.status).toBe(200)
+      expect(sendEmail).toHaveBeenCalledTimes(1)
+
+      const reset = await post('reset-password', { token, password: 'new-password' })
+      expect(reset.status, await reset.text()).toBe(200)
+
+      const oldLogin = await post('login', { email: resetAdmin.email, password: 'old-password' })
+      expect(oldLogin.status).toBe(401)
+
+      const newLogin = await post('login', { email: resetAdmin.email, password: 'new-password' })
+      expect(newLogin.status).toBe(200)
+      expect(await newLogin.json()).toMatchObject({
+        user: { id: resetAdmin.id, collection: 'admins' },
+      })
+
+      const reused = await post('reset-password', { token, password: 'another-password' })
+      expect(reused.status).toBe(403)
+    } finally {
+      sendEmail.mockRestore()
+      await payload.delete({ collection: 'admins', id: resetAdmin.id })
+    }
   })
 
   it('allows multiple inactive shows and one active show', async () => {
