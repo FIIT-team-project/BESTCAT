@@ -1,12 +1,16 @@
 'use server'
 
-import crypto from 'crypto'
 import config from '@payload-config'
 import { login, logout } from '@payloadcms/next/auth'
 import { cookies, headers } from 'next/headers.js'
 import { redirect } from 'next/navigation'
 import { generatePayloadCookie, getPayload, ValidationError } from 'payload'
-import { sendTemplatedEmail } from '@/lib/sendTemplatedEmail'
+import {
+  consumeOnboardingToken,
+  findAuthUser,
+  sendActivationCode,
+  verifyActivationCode,
+} from '@/lib/auth/onboarding'
 
 export type AuthActionState = {
   step?: 'email' | 'password' | 'otp' | 'set-password'
@@ -38,51 +42,17 @@ export async function checkEmailAction(
 
   const payload = await getPayload({ config })
 
-  const { docs } = await payload.find({
-    collection: 'users',
-    where: { email: { equals: email } },
-    limit: 1,
-  })
-
-  if (docs.length === 0) {
+  const user = await findAuthUser(payload, email)
+  if (!user) {
     return { step: 'email', error: 'Account not found. Contact administrator.' }
   }
-
-  const user = docs[0]
 
   if (user.isActivated) {
     return { step: 'password', email }
   }
 
-  // Generate 6-digit OTP
-  const code = Math.floor(100000 + Math.random() * 900000).toString()
-  const hashedCode = crypto.createHash('sha256').update(code).digest('hex')
-  const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
-  const cooldownUntil = new Date(Date.now() + 60_000).toISOString() // 10 minutes for OTP
-
-  await payload.update({
-    collection: 'users',
-    id: user.id,
-    data: {
-      otpCode: hashedCode,
-      otpExpiresAt,
-      otpAttempts: 0,
-      otpCooldownUntil: cooldownUntil,
-    },
-  })
-
-  await sendTemplatedEmail({
-    payload,
-    templateSlug: 'otp',
-    to: email,
-    variables: {
-      code,
-      userName: user.name ? `, ${user.name}` : '',
-      expiry: '10',
-    },
-  })
-
-  return { step: 'otp', email, cooldownUntil }
+  const result = await sendActivationCode(payload, user, new Headers(await headers()))
+  return { step: 'otp', email, ...result }
 }
 
 // ---------------------------------------------------------------------------
@@ -116,61 +86,21 @@ export async function resendOtpAction(
   data: FormData,
 ): Promise<AuthActionState> {
   const email = getString(data, 'email').trim().toLowerCase()
-  if (!email) return { step: 'email', error: 'Email is required.' }
+  if (!email || !EMAIL_RE.test(email)) {
+    return { step: 'email', error: 'Insert a valid email address.' }
+  }
 
   const payload = await getPayload({ config })
 
-  const { docs } = await payload.find({
-    collection: 'users',
-    where: { email: { equals: email } },
-    limit: 1,
-  })
-
-  if (docs.length === 0) {
+  const user = await findAuthUser(payload, email)
+  if (!user) {
     return { step: 'email', error: 'Account not found. Contact administrator.' }
   }
 
-  const user = docs[0]
+  if (user.isActivated) return { step: 'password', email }
 
-  // Check cooldown
-  if (user.otpCooldownUntil && new Date(user.otpCooldownUntil) > new Date()) {
-    return {
-      step: 'otp',
-      email,
-      cooldownUntil: user.otpCooldownUntil,
-      error: 'Please wait before requesting a new code.',
-    }
-  }
-
-  // Generate new OTP
-  const code = Math.floor(100000 + Math.random() * 900000).toString()
-  const hashedCode = crypto.createHash('sha256').update(code).digest('hex')
-  const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString()
-  const cooldownUntil = new Date(Date.now() + 60_000).toISOString()
-
-  await payload.update({
-    collection: 'users',
-    id: user.id,
-    data: {
-      otpCode: hashedCode,
-      otpExpiresAt,
-      otpAttempts: 0,
-      otpCooldownUntil: cooldownUntil,
-    },
-  })
-
-  await sendTemplatedEmail({
-    payload,
-    templateSlug: 'otp',
-    to: email,
-    variables: {
-      code,
-      userName: user.name ? `, ${user.name}` : '',
-      expiry: '10',
-    },
-  })
-
-  return { step: 'otp', email, cooldownUntil }
+  const result = await sendActivationCode(payload, user, new Headers(await headers()))
+  return { step: 'otp', email, ...result }
 }
 
 // ---------------------------------------------------------------------------
@@ -189,62 +119,8 @@ export async function verifyOtpAction(
 
   const payload = await getPayload({ config })
 
-  const { docs } = await payload.find({
-    collection: 'users',
-    where: { email: { equals: email } },
-    limit: 1,
-  })
-
-  if (docs.length === 0) {
-    return { step: 'email', error: 'Account not found. Contact administrator.' }
-  }
-
-  const user = docs[0]
-
-  // Check expiry
-  if (!user.otpCode || !user.otpExpiresAt || new Date(user.otpExpiresAt) < new Date()) {
-    return { step: 'otp', email, error: 'Invalid or expired code.' }
-  }
-
-  const currentAttempts = (user.otpAttempts as number) || 0
-
-  // Hash provided code and compare
-  const hashedInput = crypto.createHash('sha256').update(code).digest('hex')
-
-  if (hashedInput !== user.otpCode) {
-    if (currentAttempts >= 4) {
-      // This will be the 5th failed attempt → lock out
-      await payload.update({
-        collection: 'users',
-        id: user.id,
-        data: { otpCode: '', otpExpiresAt: '', otpAttempts: currentAttempts + 1 },
-      })
-      return { step: 'otp', email, error: 'Too many failed attempts. Request a new code.' }
-    }
-
-    await payload.update({
-      collection: 'users',
-      id: user.id,
-      data: { otpAttempts: currentAttempts + 1 },
-    })
-    return { step: 'otp', email, error: 'Invalid or expired code.' }
-  }
-
-  // OTP correct — generate onboarding token
-  const onboardingToken = crypto.randomBytes(32).toString('hex')
-
-  await payload.update({
-    collection: 'users',
-    id: user.id,
-    data: {
-      onboardingToken,
-      otpCode: '',
-      otpExpiresAt: '',
-      otpAttempts: 0,
-    },
-  })
-
-  return { step: 'set-password', email, onboardingToken }
+  const result = await verifyActivationCode(payload, email, code)
+  return { step: result.onboardingToken ? 'set-password' : 'otp', email, ...result }
 }
 
 // ---------------------------------------------------------------------------
@@ -267,35 +143,22 @@ export async function setPasswordAction(
     return {
       step: 'set-password',
       email,
-      onboardingToken,
       error: 'Password must be at least 8 characters.',
     }
   }
 
   if (password !== confirmPassword) {
-    return { step: 'set-password', email, onboardingToken, error: 'Passwords do not match.' }
+    return { step: 'set-password', email, error: 'Passwords do not match.' }
   }
 
   const payload = await getPayload({ config })
 
-  const { docs } = await payload.find({
-    collection: 'users',
-    where: { email: { equals: email } },
-    limit: 1,
-  })
-
-  if (docs.length === 0) {
-    return { step: 'email', error: 'Account not found. Contact administrator.' }
-  }
-
-  const user = docs[0]
-
-  if (user.onboardingToken !== onboardingToken) {
+  const user = await consumeOnboardingToken(payload, email, onboardingToken)
+  if (!user) {
     return {
       step: 'set-password',
       email,
-      onboardingToken,
-      error: 'Invalid token. Try the process again.',
+      error: 'Invalid or expired activation. Request a new code.',
     }
   }
 
@@ -306,20 +169,31 @@ export async function setPasswordAction(
       data: {
         password,
         isActivated: true,
-        onboardingToken: '',
-        otpCode: '',
-        otpExpiresAt: '',
+        onboardingToken: null,
+        onboardingTokenExpiresAt: null,
+        otpCode: null,
+        otpExpiresAt: null,
         otpAttempts: 0,
+        otpCooldownUntil: null,
+        sessions: [],
       },
     })
+  } catch (error) {
+    payload.logger.error({ err: error, msg: 'Unable to complete account activation.' })
+    return {
+      step: 'email',
+      email,
+      error: 'Failed to set password. Please request a new verification code.',
+    }
+  }
 
+  try {
     await login({ collection: 'users', config, email, password })
   } catch {
     return {
-      step: 'set-password',
+      step: 'email',
       email,
-      onboardingToken,
-      error: 'Failed to set password. Please try again.',
+      error: 'Account activated. Please log in with your new password.',
     }
   }
 
@@ -374,7 +248,8 @@ export async function resetPasswordAction(
       overrideAccess: false,
     })
 
-    if (!result.token) return { error: 'Password has been updated. Please log in with your new password.' }
+    if (!result.token)
+      return { error: 'Password has been updated. Please log in with your new password.' }
 
     const cookie = generatePayloadCookie({
       collectionAuthConfig: payload.collections.users.config.auth,

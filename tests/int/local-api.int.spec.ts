@@ -72,6 +72,7 @@ describe('Local API', () => {
         email: 'user@example.com',
         password: 'test-password',
         name: 'Test owner',
+        isActivated: true,
         phone_number: '+421900123456',
       },
     })
