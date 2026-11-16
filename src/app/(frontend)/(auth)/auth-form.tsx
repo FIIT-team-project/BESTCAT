@@ -24,6 +24,7 @@ import {
   resetPasswordAction,
   setPasswordAction,
   verifyOtpAction,
+  type AuthActionState,
 } from './actions'
 
 type AuthMode = 'login' | 'auth' | 'forgot-password' | 'reset-password' | 'logout'
@@ -39,35 +40,39 @@ export function AuthForm({ mode, token }: AuthFormProps) {
   const [currentEmail, setCurrentEmail] = useState('')
   const [onboardingToken, setOnboardingToken] = useState('')
   const [cooldown, setCooldown] = useState(0)
+  const [flowError, setFlowError] = useState<string>()
+
+  // Apply server results in the submission handler, including errors that change steps.
+  const withFlowState =
+    (action: (state: AuthActionState, data: FormData) => Promise<AuthActionState>) =>
+    async (state: AuthActionState, data: FormData) => {
+      const result = await action(state, data)
+      if (result.step) setStep(result.step)
+      if (result.email) setCurrentEmail(result.email)
+      if (result.onboardingToken) setOnboardingToken(result.onboardingToken)
+      if (result.cooldownUntil) {
+        setCooldown(Math.max(0, Math.ceil((Date.parse(result.cooldownUntil) - Date.now()) / 1000)))
+      }
+      setFlowError(result.error)
+      return result
+    }
 
   // Server action states
-  const [checkEmailState, checkEmailFormAction, isCheckingEmail] = useActionState(
-    checkEmailAction,
+  const [, checkEmailFormAction, isCheckingEmail] = useActionState(
+    withFlowState(checkEmailAction),
     {},
   )
-  const [loginState, loginFormAction, isLoggingIn] = useActionState(loginAction, {})
-  const [verifyOtpState, verifyOtpFormAction, isVerifyingOtp] = useActionState(
-    verifyOtpAction,
-    {},
-  )
-  const [resendOtpState, resendOtpFormAction, isResendingOtp] = useActionState(
-    resendOtpAction,
-    {},
-  )
-  const [setPasswordState, setPasswordFormAction, isSettingPassword] = useActionState(
-    setPasswordAction,
+  const [, loginFormAction, isLoggingIn] = useActionState(withFlowState(loginAction), {})
+  const [, verifyOtpFormAction, isVerifyingOtp] = useActionState(withFlowState(verifyOtpAction), {})
+  const [, resendOtpFormAction, isResendingOtp] = useActionState(withFlowState(resendOtpAction), {})
+  const [, setPasswordFormAction, isSettingPassword] = useActionState(
+    withFlowState(setPasswordAction),
     {},
   )
 
   // Dedicated modes
-  const [forgotState, forgotFormAction, isForgotPending] = useActionState(
-    forgotPasswordAction,
-    {},
-  )
-  const [resetState, resetFormAction, isResetPending] = useActionState(
-    resetPasswordAction,
-    {},
-  )
+  const [forgotState, forgotFormAction, isForgotPending] = useActionState(forgotPasswordAction, {})
+  const [resetState, resetFormAction, isResetPending] = useActionState(resetPasswordAction, {})
   const [logoutState, logoutFormAction] = useActionState(logoutAction, {})
 
   const logoutFormRef = useRef<HTMLFormElement>(null)
@@ -81,44 +86,6 @@ export function AuthForm({ mode, token }: AuthFormProps) {
     }
   }, [mode])
 
-  // Handle checkEmail transition
-  useEffect(() => {
-    if (checkEmailState.step === 'password') {
-      setStep('password')
-      if (checkEmailState.email) setCurrentEmail(checkEmailState.email)
-    } else if (checkEmailState.step === 'otp') {
-      setStep('otp')
-      if (checkEmailState.email) setCurrentEmail(checkEmailState.email)
-      if (checkEmailState.cooldownUntil) {
-        const remaining = Math.max(
-          0,
-          Math.ceil((new Date(checkEmailState.cooldownUntil).getTime() - Date.now()) / 1000),
-        )
-        setCooldown(remaining)
-      }
-    }
-  }, [checkEmailState])
-
-  // Handle resendOtp cooldown
-  useEffect(() => {
-    if (resendOtpState.cooldownUntil) {
-      const remaining = Math.max(
-        0,
-        Math.ceil((new Date(resendOtpState.cooldownUntil).getTime() - Date.now()) / 1000),
-      )
-      setCooldown(remaining)
-    }
-  }, [resendOtpState])
-
-  // Handle verifyOtp transition
-  useEffect(() => {
-    if (verifyOtpState.step === 'set-password') {
-      setStep('set-password')
-      if (verifyOtpState.onboardingToken) setOnboardingToken(verifyOtpState.onboardingToken)
-      if (verifyOtpState.email) setCurrentEmail(verifyOtpState.email)
-    }
-  }, [verifyOtpState])
-
   // Cooldown countdown interval
   useEffect(() => {
     if (cooldown <= 0) return
@@ -131,6 +98,8 @@ export function AuthForm({ mode, token }: AuthFormProps) {
   // Helper to return to email step
   const handleBackToEmail = () => {
     setStep('email')
+    setOnboardingToken('')
+    setFlowError(undefined)
   }
 
   // ---------------------------------------------------------------------------
@@ -263,9 +232,7 @@ export function AuthForm({ mode, token }: AuthFormProps) {
           <CardTitle>
             <h1>Login</h1>
           </CardTitle>
-          <CardDescription>
-            Enter your email to login or activate your account.
-          </CardDescription>
+          <CardDescription>Enter your email to login or activate your account.</CardDescription>
         </CardHeader>
         <CardContent>
           <form action={checkEmailFormAction}>
@@ -283,7 +250,7 @@ export function AuthForm({ mode, token }: AuthFormProps) {
                   autoFocus
                 />
               </Field>
-              <FieldError>{checkEmailState.error}</FieldError>
+              <FieldError>{flowError}</FieldError>
               <Field>
                 <Button type="submit" disabled={isCheckingEmail}>
                   {isCheckingEmail ? 'Checking…' : 'Continue'}
@@ -328,7 +295,7 @@ export function AuthForm({ mode, token }: AuthFormProps) {
                   autoFocus
                 />
               </Field>
-              <FieldError>{loginState.error}</FieldError>
+              <FieldError>{flowError}</FieldError>
               <Field>
                 <Button type="submit" disabled={isLoggingIn}>
                   {isLoggingIn ? 'Logging in…' : 'Login'}
@@ -394,7 +361,7 @@ export function AuthForm({ mode, token }: AuthFormProps) {
                 />
                 <FieldDescription>The code is valid for 10 minutes.</FieldDescription>
               </Field>
-              <FieldError>{verifyOtpState.error || resendOtpState.error}</FieldError>
+              <FieldError>{flowError}</FieldError>
               <Field>
                 <Button type="submit" disabled={isVerifyingOtp}>
                   {isVerifyingOtp ? 'Verifying code…' : 'Verify Code'}
@@ -478,7 +445,7 @@ export function AuthForm({ mode, token }: AuthFormProps) {
                   required
                 />
               </Field>
-              <FieldError>{setPasswordState.error}</FieldError>
+              <FieldError>{flowError}</FieldError>
               <Field>
                 <Button type="submit" disabled={isSettingPassword}>
                   {isSettingPassword ? 'Setting password…' : 'Set Password and Sign In'}
@@ -487,6 +454,11 @@ export function AuthForm({ mode, token }: AuthFormProps) {
             </FieldGroup>
           </form>
         </CardContent>
+        <CardFooter>
+          <Button type="button" variant="link" onClick={handleBackToEmail}>
+            Request a new code
+          </Button>
+        </CardFooter>
       </Card>
     )
   }

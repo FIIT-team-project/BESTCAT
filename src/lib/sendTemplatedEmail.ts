@@ -34,7 +34,7 @@ export async function sendTemplatedEmail({
   const template = emailTemplates[templateSlug]
 
   const subject = replaceVariables(template.subject, variables)
-  const html = replaceVariables(template.body, variables)
+  const html = replaceVariables(template.body, variables, true)
 
   await payload.sendEmail({
     to,
@@ -44,8 +44,25 @@ export async function sendTemplatedEmail({
   })
 }
 
-function replaceVariables(text: string, variables: Record<string, string>): string {
+function replaceVariables(
+  text: string,
+  variables: Record<string, string>,
+  escapeHTML = false,
+): string {
   return text.replace(/\{\{(\w+)\}\}/g, (match, key: string) => {
-    return variables[key] ?? match
+    const value = variables[key]
+    if (value === undefined) return match
+    return escapeHTML
+      ? value.replace(/[&<>"']/g, (character) => {
+          const entities: Record<string, string> = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;',
+          }
+          return entities[character]
+        })
+      : value
   })
 }
