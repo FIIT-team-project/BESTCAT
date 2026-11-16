@@ -35,5 +35,38 @@ export const Users: CollectionConfig = {
       name: 'phone_number',
       type: 'text',
     },
+    // OTP / onboarding tracking fields (hidden from admin UI)
+    {
+      name: 'isActivated',
+      type: 'checkbox',
+      defaultValue: false,
+      admin: { hidden: false }, // Change later
+    },
+    {
+      name: 'otpCode',
+      type: 'text',
+      admin: { hidden: true },
+    },
+    {
+      name: 'otpExpiresAt',
+      type: 'text',
+      admin: { hidden: true },
+    },
+    {
+      name: 'otpAttempts',
+      type: 'number',
+      defaultValue: 0,
+      admin: { hidden: true },
+    },
+    {
+      name: 'otpCooldownUntil',
+      type: 'text',
+      admin: { hidden: true },
+    },
+    {
+      name: 'onboardingToken',
+      type: 'text',
+      admin: { hidden: true },
+    },
   ],
 }

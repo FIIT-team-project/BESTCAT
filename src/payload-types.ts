@@ -180,6 +180,12 @@ export interface User {
   id: number;
   name: string;
   phone_number?: string | null;
+  isActivated?: boolean | null;
+  otpCode?: string | null;
+  otpExpiresAt?: string | null;
+  otpAttempts?: number | null;
+  otpCooldownUntil?: string | null;
+  onboardingToken?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -414,6 +420,12 @@ export interface AdminsSelect<T extends boolean = true> {
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
   phone_number?: T;
+  isActivated?: T;
+  otpCode?: T;
+  otpExpiresAt?: T;
+  otpAttempts?: T;
+  otpCooldownUntil?: T;
+  onboardingToken?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
