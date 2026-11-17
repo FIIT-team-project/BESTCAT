@@ -83,6 +83,23 @@ export const Users: CollectionConfig = {
       },
     },
   },
+  hooks: {
+    afterChange: [
+      async ({ doc, operation, req }) => {
+        if (operation === 'create' && req.user) {
+          await req.payload.forgotPassword({
+            collection: 'users',
+            data: {
+              email: doc.email,
+            },
+            req,
+          })
+        }
+
+        return doc
+      },
+    ],
+  },
   access: {
     admin: () => false,
   },
