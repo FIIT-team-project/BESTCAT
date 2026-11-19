@@ -1,4 +1,7 @@
 Check docs for project context
+We should use the dedicated docs folder for storing ADRs and other pieces of knowledge instead polluting the readme
+
+Use shadcn for standard components and explicitly ask me once before creating custom components
 
 # Agents
 
