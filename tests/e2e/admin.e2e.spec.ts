@@ -8,6 +8,9 @@ import { seedTestAdmin, cleanupTestAdmin, testAdmin } from '../helpers/seedAdmin
 
 const serverURL = 'http://localhost:3000'
 
+// Cookie authentication also enforces Payload's CSRF origin check for API clients.
+test.use({ extraHTTPHeaders: { Origin: serverURL } })
+
 test.describe('Admin access', () => {
   let payload: Payload
   let user: User
@@ -25,6 +28,7 @@ test.describe('Admin access', () => {
         email: `e2e-user-${randomUUID()}@example.com`,
         password,
         name: 'Test API user',
+        isActivated: true,
       },
     })
 

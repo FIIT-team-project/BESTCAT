@@ -8,6 +8,7 @@ import sharp from 'sharp'
 
 import { Users } from './collections/Users'
 import { Admins } from './collections/Admins'
+import { AuthRateLimits } from './collections/AuthRateLimits'
 import { Media } from './collections/Media'
 import { Cats } from './collections/Cats'
 import { Shows } from './collections/Shows'
@@ -24,7 +25,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Admins, Users, Media, Cats, Shows, Events, CatEventEntries],
+  collections: [Admins, Users, AuthRateLimits, Media, Cats, Shows, Events, CatEventEntries],
   graphQL: {
     disable: true,
   },

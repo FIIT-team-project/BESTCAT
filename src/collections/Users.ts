@@ -1,4 +1,11 @@
-import type { CollectionConfig } from 'payload'
+import { AuthenticationError, type CollectionConfig } from 'payload'
+import { isAdmin } from './access/isAdmin'
+
+const privateAuthFieldAccess = {
+  create: () => false,
+  read: () => false,
+  update: () => false,
+}
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -24,6 +31,14 @@ export const Users: CollectionConfig = {
   access: {
     admin: () => false,
   },
+  hooks: {
+    beforeLogin: [
+      ({ user, req }) => {
+        if (!user.isActivated) throw new AuthenticationError(req.t)
+        return user
+      },
+    ],
+  },
   fields: [
     // Email and password are provided by Payload authentication.
     {
@@ -34,6 +49,59 @@ export const Users: CollectionConfig = {
     {
       name: 'phone_number',
       type: 'text',
+    },
+    // OTP / onboarding tracking fields (hidden from admin UI)
+    {
+      name: 'isActivated',
+      type: 'checkbox',
+      defaultValue: false,
+      access: {
+        create: ({ req }) => isAdmin({ req }),
+        update: ({ req }) => isAdmin({ req }),
+      },
+    },
+    {
+      name: 'otpCode',
+      type: 'text',
+      hidden: true,
+      access: privateAuthFieldAccess,
+      admin: { hidden: true },
+    },
+    {
+      name: 'otpExpiresAt',
+      type: 'text',
+      hidden: true,
+      access: privateAuthFieldAccess,
+      admin: { hidden: true },
+    },
+    {
+      name: 'otpAttempts',
+      type: 'number',
+      defaultValue: 0,
+      hidden: true,
+      access: privateAuthFieldAccess,
+      admin: { hidden: true },
+    },
+    {
+      name: 'otpCooldownUntil',
+      type: 'text',
+      hidden: true,
+      access: privateAuthFieldAccess,
+      admin: { hidden: true },
+    },
+    {
+      name: 'onboardingToken',
+      type: 'text',
+      hidden: true,
+      access: privateAuthFieldAccess,
+      admin: { hidden: true },
+    },
+    {
+      name: 'onboardingTokenExpiresAt',
+      type: 'date',
+      hidden: true,
+      access: privateAuthFieldAccess,
+      admin: { hidden: true },
     },
   ],
 }

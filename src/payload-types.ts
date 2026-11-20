@@ -70,6 +70,7 @@ export interface Config {
   collections: {
     admins: Admin;
     users: User;
+    'auth-rate-limits': AuthRateLimit;
     media: Media;
     cats: Cat;
     shows: Show;
@@ -84,6 +85,7 @@ export interface Config {
   collectionsSelect: {
     admins: AdminsSelect<false> | AdminsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    'auth-rate-limits': AuthRateLimitsSelect<false> | AuthRateLimitsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     cats: CatsSelect<false> | CatsSelect<true>;
     shows: ShowsSelect<false> | ShowsSelect<true>;
@@ -180,6 +182,13 @@ export interface User {
   id: number;
   name: string;
   phone_number?: string | null;
+  isActivated?: boolean | null;
+  otpCode?: string | null;
+  otpExpiresAt?: string | null;
+  otpAttempts?: number | null;
+  otpCooldownUntil?: string | null;
+  onboardingToken?: string | null;
+  onboardingTokenExpiresAt?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -199,6 +208,16 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auth-rate-limits".
+ */
+export interface AuthRateLimit {
+  id: number;
+  key: string;
+  count: number;
+  resetAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -313,6 +332,10 @@ export interface PayloadLockedDocument {
         value: number | User;
       } | null)
     | ({
+        relationTo: 'auth-rate-limits';
+        value: number | AuthRateLimit;
+      } | null)
+    | ({
         relationTo: 'media';
         value: number | Media;
       } | null)
@@ -414,6 +437,13 @@ export interface AdminsSelect<T extends boolean = true> {
 export interface UsersSelect<T extends boolean = true> {
   name?: T;
   phone_number?: T;
+  isActivated?: T;
+  otpCode?: T;
+  otpExpiresAt?: T;
+  otpAttempts?: T;
+  otpCooldownUntil?: T;
+  onboardingToken?: T;
+  onboardingTokenExpiresAt?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -431,6 +461,15 @@ export interface UsersSelect<T extends boolean = true> {
         createdAt?: T;
         expiresAt?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "auth-rate-limits_select".
+ */
+export interface AuthRateLimitsSelect<T extends boolean = true> {
+  key?: T;
+  count?: T;
+  resetAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
