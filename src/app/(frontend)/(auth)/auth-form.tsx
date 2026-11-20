@@ -26,7 +26,7 @@ const modes = {
   },
   'forgot-password': {
     title: 'Forgot password',
-    description: 'Enter your email to receive a password reset link.',
+    description: 'In case you need to reset your password.',
     submit: 'Send reset email',
     action: forgotPasswordAction,
   },
@@ -70,7 +70,7 @@ export function AuthForm({ mode, token }: { mode: keyof typeof modes; token?: st
       <CardContent>
         {state.success ? (
           <FieldDescription role="status">
-            If an account exists with that email, you will receive a password reset link.
+            A password reset link has been sent to your email.
           </FieldDescription>
         ) : (
           <form action={formAction} ref={formRef}>

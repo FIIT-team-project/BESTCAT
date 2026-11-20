@@ -57,7 +57,7 @@ test.describe('Regular user pages', () => {
     await expect(page).toHaveURL(`${serverURL}/forgot-password`)
     await page.getByLabel('Email', { exact: true }).fill(`unknown-${randomUUID()}@example.com`)
     await page.getByRole('button', { name: 'Send reset email' }).click()
-    await expect(page.getByRole('status')).toContainText('If an account exists')
+    await expect(page.getByRole('status')).toContainText('A password reset link has been sent to your email.')
 
     const token = await payload.forgotPassword({
       collection: 'users',
