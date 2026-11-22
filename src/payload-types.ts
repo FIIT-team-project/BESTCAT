@@ -232,6 +232,10 @@ export interface Cat {
   birthday: string;
   owner: number | User;
   wcf_id: string;
+  /**
+   * Number of the cat in the catalog of the current show.
+   */
+  catalog_number: number;
   updatedAt: string;
   createdAt: string;
 }
@@ -277,6 +281,8 @@ export interface CatEventEntry {
   id: number;
   cat: number | Cat;
   event: number | Event;
+  queue_number: number;
+  cat_status: 'registered' | 'waiting' | 'called' | 'exhibited' | 'rated';
   updatedAt: string;
   createdAt: string;
 }
@@ -462,6 +468,7 @@ export interface CatsSelect<T extends boolean = true> {
   birthday?: T;
   owner?: T;
   wcf_id?: T;
+  catalog_number?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -501,6 +508,8 @@ export interface EventsSelect<T extends boolean = true> {
 export interface CatEventEntriesSelect<T extends boolean = true> {
   cat?: T;
   event?: T;
+  queue_number?: T;
+  cat_status?: T;
   updatedAt?: T;
   createdAt?: T;
 }
