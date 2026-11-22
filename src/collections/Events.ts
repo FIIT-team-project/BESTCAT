@@ -51,5 +51,13 @@ export const Events: CollectionConfig = {
         date: { pickerAppearance: 'dayOnly' },
       },
     },
+    {
+      name: 'judgement_number',
+      type: 'number',
+      min: 1,
+      admin: {
+        description: 'Order of the judgement for the judge on that day (1st, 2nd, …).',
+      },
+    },
   ],
 }

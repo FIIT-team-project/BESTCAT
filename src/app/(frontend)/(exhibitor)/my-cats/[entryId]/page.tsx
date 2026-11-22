@@ -6,12 +6,8 @@ import { notFound } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { requireExhibitor } from '@/lib/exhibitor/currentUser'
-import {
-  catStatusSteps,
-  eventTypeLabels,
-  findExhibitorEntry,
-  getCatStatusStep,
-} from '@/lib/exhibitor/entries'
+import { catStatusSteps, eventTypeLabels, formatTime, getCatStatus } from '@/lib/catStatus'
+import { findExhibitorEntry } from '@/lib/exhibitor/entries'
 
 export const metadata: Metadata = { title: 'Cat progress' }
 
@@ -30,7 +26,11 @@ export default async function CatProgressPage({
 
   const { cat, event } = entry
   const judgeName = typeof event.judge === 'object' ? event.judge.name : undefined
-  const currentStep = catStatusSteps.findIndex((step) => step.value === entry.cat_status)
+  // An absent cat was called but did not come, so the timeline stops at "Called".
+  const currentStep =
+    entry.cat_status === 'absent'
+      ? catStatusSteps.findIndex((step) => step.value === 'called')
+      : catStatusSteps.findIndex((step) => step.value === entry.cat_status)
 
   return (
     <>
@@ -61,9 +61,13 @@ export default async function CatProgressPage({
         </CardHeader>
         <CardContent className="flex items-center justify-between gap-2">
           <Badge variant={entry.cat_status === 'called' ? 'default' : 'secondary'}>
-            {getCatStatusStep(entry.cat_status).label}
+            {getCatStatus(entry.cat_status).label}
           </Badge>
-          <span className="text-sm text-muted-foreground">Queue number {entry.queue_number}</span>
+          <span className="text-sm text-muted-foreground">
+            {entry.called_at
+              ? `Called at ${formatTime(entry.called_at)}`
+              : `Queue number ${entry.queue_number}`}
+          </span>
         </CardContent>
       </Card>
 
@@ -73,9 +77,37 @@ export default async function CatProgressPage({
             <h2>Rating</h2>
           </CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          {/* TODO: show place and title once they are added to cat-event-entries. */}
-          {entry.cat_status === 'rated' ? 'Your cat has been rated.' : 'Not rated yet.'}
+        <CardContent className="text-sm">
+          {entry.cat_status === 'rated' ? (
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
+              {entry.title && (
+                <>
+                  <dt className="text-muted-foreground">Title</dt>
+                  <dd>{entry.title}</dd>
+                </>
+              )}
+              {entry.score != null && (
+                <>
+                  <dt className="text-muted-foreground">Score</dt>
+                  <dd>{entry.score} / 10</dd>
+                </>
+              )}
+              {entry.place != null && (
+                <>
+                  <dt className="text-muted-foreground">Place</dt>
+                  <dd>{entry.place}.</dd>
+                </>
+              )}
+              {entry.text_rating && (
+                <>
+                  <dt className="text-muted-foreground">Comment</dt>
+                  <dd className="whitespace-pre-line">{entry.text_rating}</dd>
+                </>
+              )}
+            </dl>
+          ) : (
+            <p className="text-muted-foreground">Not rated yet.</p>
+          )}
         </CardContent>
       </Card>
 

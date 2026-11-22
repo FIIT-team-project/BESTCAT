@@ -40,6 +40,20 @@ export const Shows: CollectionConfig = {
       required: true,
     },
     {
+      name: 'date_from',
+      type: 'date',
+      admin: {
+        date: { pickerAppearance: 'dayOnly' },
+      },
+    },
+    {
+      name: 'date_to',
+      type: 'date',
+      admin: {
+        date: { pickerAppearance: 'dayOnly' },
+      },
+    },
+    {
       name: 'is_active',
       type: 'checkbox',
       defaultValue: false,

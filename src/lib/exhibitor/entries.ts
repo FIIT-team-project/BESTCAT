@@ -7,47 +7,6 @@ export type ExhibitorEntry = CatEventEntry & {
   event: Event & { show: Show; judge: User | number }
 }
 
-export const catStatusSteps = [
-  {
-    value: 'registered',
-    label: 'Registered',
-    description: 'Your cat was accepted',
-  },
-  {
-    value: 'waiting',
-    label: 'Waiting',
-    description: 'Wait until you are called',
-  },
-  {
-    value: 'called',
-    label: 'Called',
-    description: 'Bring your cat to the judge',
-  },
-  {
-    value: 'exhibited',
-    label: 'Exhibited',
-    description: 'Wait for the rating',
-  },
-  {
-    value: 'rated',
-    label: 'Rated',
-    description: 'Your cat received a rating',
-  },
-] as const satisfies {
-  value: CatEventEntry['cat_status']
-  label: string
-  description: string
-}[]
-
-export const getCatStatusStep = (status: CatEventEntry['cat_status']) =>
-  catStatusSteps.find((step) => step.value === status) ?? catStatusSteps[0]
-
-export const eventTypeLabels: Record<Event['event_type'], string> = {
-  table: 'Table judging',
-  ring: 'Ring',
-  bis: 'Best in Show',
-}
-
 const isPopulated = (entry: CatEventEntry): entry is ExhibitorEntry =>
   typeof entry.cat === 'object' &&
   typeof entry.event === 'object' &&

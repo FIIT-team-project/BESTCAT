@@ -58,5 +58,27 @@ export const Cats: CollectionConfig = {
         description: 'Number of the cat in the catalog of the current show.',
       },
     },
+    {
+      name: 'show_class',
+      type: 'select',
+      options: [
+        'CACP',
+        'CACJ',
+        'CAC',
+        'CACIB',
+        'CAGCIB',
+        'CACE',
+        'GCACE',
+        'CACM',
+        'CAGPIB',
+        'CAPE',
+        { label: 'PH Adult', value: 'PH_ADULT' },
+        { label: 'PH Neuter', value: 'PH_NEUTER' },
+      ],
+    },
+    {
+      name: 'ring_type',
+      type: 'text',
+    },
   ],
 }
