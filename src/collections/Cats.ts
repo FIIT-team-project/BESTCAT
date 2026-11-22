@@ -4,7 +4,7 @@ export const Cats: CollectionConfig = {
   slug: 'cats',
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'breed', 'owner', 'wcf_id'],
+    defaultColumns: ['catalog_number', 'name', 'breed', 'owner', 'wcf_id'],
   },
   fields: [
     {
@@ -47,6 +47,16 @@ export const Cats: CollectionConfig = {
       label: 'WCF ID',
       type: 'text',
       required: true,
+    },
+    {
+      name: 'catalog_number',
+      label: 'Catalog number',
+      type: 'number',
+      required: true,
+      min: 1,
+      admin: {
+        description: 'Number of the cat in the catalog of the current show.',
+      },
     },
   ],
 }
