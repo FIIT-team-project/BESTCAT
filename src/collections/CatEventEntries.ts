@@ -21,5 +21,29 @@ export const CatEventEntries: CollectionConfig = {
       required: true,
       index: true,
     },
+  {
+      name: 'cat_status',
+      type: 'select',
+      required: true,
+      defaultValue: 'registered',
+      options: [
+        {
+          label: 'Waiting',
+          value: 'waiting',
+        },
+        {
+          label: 'Called',
+          value: 'called',
+        },
+        {
+          label: 'Exhibited',
+          value: 'exhibited',
+        },
+        {
+          label: 'Rated',
+          value: 'rated',
+        },
+      ],
+    },
   ],
 }
