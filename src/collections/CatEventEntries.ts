@@ -21,12 +21,22 @@ export const CatEventEntries: CollectionConfig = {
       required: true,
       index: true,
     },
-  {
+    {
+      name: 'queue_number',
+      type: 'number',
+      required: true,
+      min: 1,
+    },
+    {
       name: 'cat_status',
       type: 'select',
       required: true,
       defaultValue: 'registered',
       options: [
+        {
+          label: 'Registered',
+          value: 'registered',
+        },
         {
           label: 'Waiting',
           value: 'waiting',
