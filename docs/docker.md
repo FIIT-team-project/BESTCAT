@@ -54,8 +54,45 @@ a separate empty database. The host's `payload.db` and `media/` are not copied o
 Importing existing development data requires a separate, reviewed migration because
 development databases use automatic schema push rather than migration history.
 
-The image runs as the unprivileged `node` user. `.dockerignore` excludes local secrets,
-databases, uploads, dependencies, and build artifacts from the build context.
+The image runs as the unprivileged `node` user (UID 1000, GID 1000), provided by the
+official Node.js image. The database directory, uploaded media directory, and `.next`
+cache are owned by this user. Bind mounts must also allow this UID to write; named
+volumes inherit the image directory ownership when first created.
+
+`.dockerignore` excludes local secrets, databases, uploads, dependencies, and build
+artifacts from the build context.
+
+## Build and runtime requirements
+
+The image builds without `.env`, a Payload secret, a database connection, or SMTP.
+Build it independently of Compose's runtime configuration with:
+
+```sh
+docker build -t bestcat .
+```
+
+| Setting          | Required to build | Runtime behavior                                              |
+| ---------------- | ----------------- | ------------------------------------------------------------- |
+| `PAYLOAD_SECRET` | No                | Required when Payload initializes; use a stable secret        |
+| `DATABASE_URL`   | No                | Defaults to a local SQLite file; Compose sets the volume path |
+| `SMTP_HOST`      | No                | Optional; email is logged when unset                          |
+
+Authenticated pages read `headers()` before calling `getPayload()`. This makes Next.js
+defer Payload initialization until a request arrives, so prerendering does not require
+a dummy secret or create a temporary database. Keep this order when adding pages that
+use Payload and request headers.
+
+Compose validates `PAYLOAD_SECRET` and the runtime `.env` file while loading its
+configuration, including for `docker compose build`. That validation belongs to the
+Compose configuration; the Docker image build does not consume these settings.
+
+The current base image is `node:22-bookworm-slim`. Debian uses glibc, while Alpine uses
+musl, which can affect native dependencies such as Sharp and libSQL. This is a possible
+compatibility reason for choosing Debian, but neither Payload nor Next.js requires it.
+The commit switching base images did not document its motivation or an Alpine-specific
+failure. See the
+[official Node.js image variants](https://github.com/nodejs/docker-node/blob/main/README.md#image-variants)
+and [non-root user guidance](https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#non-root-user).
 
 ## Updating and stopping
 

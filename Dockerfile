@@ -14,7 +14,7 @@ FROM deps AS builder
 COPY . .
 RUN mkdir -p public
 # Runtime secrets and the real database are supplied when the container starts.
-RUN PAYLOAD_SECRET=docker-build-only SMTP_HOST= DATABASE_URL=file:/tmp/build.db pnpm build
+RUN pnpm build
 
 FROM base AS runner
 ENV NODE_ENV=production \
