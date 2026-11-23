@@ -13,6 +13,7 @@ import { Cats } from './collections/Cats'
 import { Shows } from './collections/Shows'
 import { Events } from './collections/Events'
 import { CatEventEntries } from './collections/CatEventEntries'
+import { migrations } from './migrations'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -50,6 +51,7 @@ export default buildConfig({
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
   db: sqliteAdapter({
+    prodMigrations: migrations,
     client: {
       url: process.env.DATABASE_URL || 'file:./payload.db',
     },

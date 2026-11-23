@@ -1,0 +1,31 @@
+name: bestcat
+
+services:
+  app:
+    build: .
+    init: true
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: file:/app/data/payload.db
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:?Set PAYLOAD_SECRET in .env}
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    volumes:
+      - data:/app/data
+      - media:/app/media
+    restart: unless-stopped
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/login').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 30s
+      timeout: 10s
+      start_period: 30s
+      retries: 3
+
+volumes:
+  data:
+  media:
