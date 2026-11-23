@@ -3,7 +3,7 @@ We should use the dedicated docs folder for storing ADRs and other pieces of kno
 
 Use shadcn for standard components and explicitly ask me once before creating custom components.
 
-Reference the relevant jira task id or ids in commit messages and PRs, ask if you don't have them.
+Reference the relevant jira issue/s by id in commit messages and PRs, ask if you don't have them.
 
 # Agents
 
