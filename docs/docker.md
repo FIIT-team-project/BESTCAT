@@ -86,11 +86,9 @@ Compose validates `PAYLOAD_SECRET` and the runtime `.env` file while loading its
 configuration, including for `docker compose build`. That validation belongs to the
 Compose configuration; the Docker image build does not consume these settings.
 
-The current base image is `node:22-bookworm-slim`. Debian uses glibc, while Alpine uses
-musl, which can affect native dependencies such as Sharp and libSQL. This is a possible
-compatibility reason for choosing Debian, but neither Payload nor Next.js requires it.
-The commit switching base images did not document its motivation or an Alpine-specific
-failure. See the
+All build and runtime stages use `node:22-alpine`. Dependencies are installed inside
+Alpine so native packages such as Sharp and libSQL use their Linux musl binaries.
+See the
 [official Node.js image variants](https://github.com/nodejs/docker-node/blob/main/README.md#image-variants)
 and [non-root user guidance](https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#non-root-user).
 
