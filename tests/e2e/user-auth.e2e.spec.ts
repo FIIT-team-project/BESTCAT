@@ -28,7 +28,7 @@ test.describe('Regular user pages', () => {
     }
   })
 
-  test('logs in, restores the session, and logs out through the simple forms', async ({ page }) => {
+  test('restores the session and logs out only after confirmation', async ({ page }) => {
     test.slow()
     await page.goto(`${serverURL}/login`)
     await page.getByLabel('Email', { exact: true }).fill(email)
@@ -44,7 +44,19 @@ test.describe('Regular user pages', () => {
 
     await page.goto(`${serverURL}/login`)
     await expect(page).toHaveURL(`${serverURL}/`)
-    await page.getByRole('link', { name: 'Log out', exact: true }).click()
+    const logoutButton = page.getByRole('button', { name: 'Log out', exact: true })
+    const confirmation = page.getByRole('alertdialog', { name: 'Log out' })
+
+    await logoutButton.click()
+    await expect(confirmation).toBeVisible()
+    await confirmation.getByRole('button', { name: 'Cancel', exact: true }).click()
+    await expect(confirmation).toBeHidden()
+    await expect(page).toHaveURL(`${serverURL}/`)
+    await page.reload()
+    await expect(page.getByRole('heading', { name: `Welcome back, ${email}` })).toBeVisible()
+
+    await logoutButton.click()
+    await confirmation.getByRole('button', { name: 'Log out', exact: true }).click()
     await expect(page).toHaveURL(`${serverURL}/login`)
     await page.goto(serverURL)
     await expect(page.getByRole('link', { name: 'Log in', exact: true })).toBeVisible()

@@ -1,8 +1,19 @@
 'use client'
 
 import Link from 'next/link'
-import { useActionState, useEffect, useRef } from 'react'
+import { useActionState } from 'react'
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -38,7 +49,7 @@ const modes = {
   },
   logout: {
     title: 'Log out',
-    description: 'Logging you out…',
+    description: 'Are you sure you want to log out?',
     submit: 'Log out',
     action: logoutAction,
   },
@@ -47,17 +58,35 @@ const modes = {
 export function AuthForm({ mode, token }: { mode: keyof typeof modes; token?: string }) {
   const { title, description, submit, action } = modes[mode]
   const [state, formAction, pending] = useActionState(action, {})
-  const formRef = useRef<HTMLFormElement>(null)
-  const logoutStarted = useRef(false)
   const hasEmail = mode === 'login' || mode === 'forgot-password'
   const hasPassword = mode === 'login' || mode === 'reset-password'
 
-  useEffect(() => {
-    if (mode === 'logout' && !logoutStarted.current) {
-      logoutStarted.current = true
-      formRef.current?.requestSubmit()
-    }
-  }, [mode])
+  if (mode === 'logout') {
+    return (
+      <AlertDialog
+        onOpenChange={(open, eventDetails) => {
+          if (!open && pending) eventDetails.cancel()
+        }}
+      >
+        <AlertDialogTrigger render={<Button />}>{title}</AlertDialogTrigger>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{title}</AlertDialogTitle>
+            <AlertDialogDescription>{description}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <FieldError>{state.error}</FieldError>
+          <form action={formAction}>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
+              <AlertDialogAction type="submit" disabled={pending}>
+                {pending ? 'Logging out…' : submit}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </form>
+        </AlertDialogContent>
+      </AlertDialog>
+    )
+  }
 
   return (
     <Card>
@@ -73,7 +102,7 @@ export function AuthForm({ mode, token }: { mode: keyof typeof modes; token?: st
             A password reset link has been sent to your email.
           </FieldDescription>
         ) : (
-          <form action={formAction} ref={formRef}>
+          <form action={formAction}>
             <FieldGroup>
               {hasEmail && (
                 <Field>

@@ -1,0 +1,5 @@
+.admin-logout__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--base) * 0.5);
+}
