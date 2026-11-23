@@ -7,6 +7,7 @@ import { login } from '../helpers/login'
 import { seedTestAdmin, cleanupTestAdmin, testAdmin } from '../helpers/seedAdmin'
 
 const serverURL = 'http://localhost:3000'
+const sameOrigin = { headers: { Origin: serverURL } }
 
 test.describe('Admin access', () => {
   let payload: Payload
@@ -59,7 +60,7 @@ test.describe('Admin access', () => {
     await expect(page.getByRole('link', { name: user.email, exact: true })).toBeVisible()
   })
 
-  test('logs a regular user out from the admin access-denied screen', async ({ page, context }) => {
+  test('returns a regular user home from the admin access-denied screen', async ({ page, context }) => {
     test.slow()
     const session = await payload.login({
       collection: 'users',
@@ -77,23 +78,40 @@ test.describe('Admin access', () => {
 
     await page.goto(`${serverURL}/admin`)
     await expect(page.getByRole('heading', { name: /Unauthorized/ })).toBeVisible()
-    await page.getByRole('link', { name: 'Log out', exact: true }).click()
-    await expect(page).toHaveURL(`${serverURL}/admin/login`)
+    await expect(page.getByRole('link', { name: 'Log out', exact: true })).toHaveCount(0)
+    await page.getByRole('link', { name: 'Go back', exact: true }).click()
+    await expect(page).toHaveURL(`${serverURL}/`)
+    await expect(page.getByRole('heading', { name: `Welcome back, ${user.email}` })).toBeVisible()
 
     const auth = await payload.auth({
       headers: new Headers({ Authorization: `JWT ${session.token}` }),
     })
-    expect(auth.user).toBeNull()
-    expect(
-      (await context.cookies()).find(({ name }) => name === `${payload.config.cookiePrefix}-token`),
-    ).toBeUndefined()
+    expect(auth.user?.id).toBe(user.id)
+  })
 
-    await page.goto(`${serverURL}/admin`)
-    await expect(page).toHaveURL(`${serverURL}/admin/login`)
-
+  test('logs out of the dashboard only after confirmation', async ({ page, context }) => {
+    test.slow()
     await login({ page, user: testAdmin })
+    const tokenCookie = `${payload.config.cookiePrefix}-token`
+    const sessionToken = (await context.cookies()).find(({ name }) => name === tokenCookie)?.value
+    expect(sessionToken).toBeTruthy()
+
     await page.goto(`${serverURL}/admin/logout`)
+    await expect(page.getByRole('heading', { name: 'Log out', exact: true })).toBeVisible()
+    await page.getByRole('link', { name: 'Cancel', exact: true }).click()
+    await expect(page).toHaveURL(`${serverURL}/admin`)
+
+    await page.getByRole('button', { name: 'Open Menu', exact: true }).click()
+    await page.getByRole('link', { name: 'Log out', exact: true }).click()
+    await expect(page).toHaveURL(`${serverURL}/admin/logout`)
+    await page.getByRole('button', { name: 'Log out', exact: true }).click()
     await expect(page).toHaveURL(`${serverURL}/admin/login`)
+
+    const auth = await payload.auth({
+      headers: new Headers({ Authorization: `JWT ${sessionToken}` }),
+    })
+    expect(auth.user).toBeNull()
+    expect((await context.cookies()).find(({ name }) => name === tokenCookie)).toBeUndefined()
   })
 
   for (const identity of ['anonymous', 'application user'] as const) {
@@ -142,20 +160,20 @@ test.describe('Admin access', () => {
       user: { id: user.id, collection: 'users' },
     })
 
-    const session = await request.get(`${serverURL}/api/users/me`)
+    const session = await request.get(`${serverURL}/api/users/me`, sameOrigin)
     expect(session.status()).toBe(200)
     expect(await session.json()).toMatchObject({ user: { id: user.id, collection: 'users' } })
-    expect((await request.get(`${serverURL}/api/admins/me`)).status()).toBe(403)
-    expect((await request.post(`${serverURL}/api/admins/logout`)).status()).toBe(403)
+    expect((await request.get(`${serverURL}/api/admins/me`, sameOrigin)).status()).toBe(403)
+    expect((await request.post(`${serverURL}/api/admins/logout`, sameOrigin)).status()).toBe(403)
 
-    const refreshed = await request.post(`${serverURL}/api/users/refresh-token`)
+    const refreshed = await request.post(`${serverURL}/api/users/refresh-token`, sameOrigin)
     expect(refreshed.status()).toBe(200)
     expect(await refreshed.json()).toMatchObject({ user: { id: user.id, collection: 'users' } })
 
-    expect((await request.get(`${serverURL}/api/users`)).status()).toBe(403)
-    expect((await request.post(`${serverURL}/api/users/logout`)).status()).toBe(200)
+    expect((await request.get(`${serverURL}/api/users`, sameOrigin)).status()).toBe(403)
+    expect((await request.post(`${serverURL}/api/users/logout`, sameOrigin)).status()).toBe(200)
 
-    const loggedOut = await request.get(`${serverURL}/api/users/me`)
+    const loggedOut = await request.get(`${serverURL}/api/users/me`, sameOrigin)
     expect(await loggedOut.json()).toMatchObject({ user: null })
   })
 
@@ -187,7 +205,7 @@ test.describe('Admin access', () => {
       user: { email: testAdmin.email, collection: 'admins' },
     })
 
-    const users = await request.get(`${serverURL}/api/users`)
+    const users = await request.get(`${serverURL}/api/users`, sameOrigin)
     expect(users.status()).toBe(200)
     expect(await users.json()).toMatchObject({
       docs: expect.arrayContaining([expect.objectContaining({ id: user.id, email: user.email })]),

@@ -20,6 +20,16 @@ const dirname = path.dirname(filename)
 export default buildConfig({
   admin: {
     user: Admins.slug,
+    components: {
+      views: {
+        logout: {
+          Component: '/app/(payload)/admin/logout-view#LogoutView',
+        },
+        unauthorized: {
+          Component: '/app/(payload)/admin/unauthorized-view#UnauthorizedView',
+        },
+      },
+    },
     importMap: {
       baseDir: path.resolve(dirname),
     },

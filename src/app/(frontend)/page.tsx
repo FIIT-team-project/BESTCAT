@@ -6,6 +6,7 @@ import React from 'react'
 import { fileURLToPath } from 'url'
 
 import config from '@/payload.config'
+import { AuthForm } from './(auth)/auth-form'
 import './styles.css'
 
 export default async function HomePage() {
@@ -31,12 +32,13 @@ export default async function HomePage() {
         {!user && <h1>Welcome to your new project.</h1>}
         {user && <h1>Welcome back, {user.email}</h1>}
         <div className="links">
-          <Link
-            className="bg-black text-white"
-            href={user?.collection === 'users' ? '/logout' : '/login'}
-          >
-            {user?.collection === 'users' ? 'Log out' : 'Log in'}
-          </Link>
+          {user?.collection === 'users' ? (
+            <AuthForm mode="logout" />
+          ) : (
+            <Link className="bg-black text-white" href="/login">
+              Log in
+            </Link>
+          )}
           <a
             className="admin"
             href={payloadConfig.routes.admin}
