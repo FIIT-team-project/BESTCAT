@@ -2,8 +2,8 @@ import type { CollectionConfig } from 'payload'
 
 import { isAdmin } from './access/isAdmin'
 
-export const Admins: CollectionConfig = {
-  slug: 'admins',
+export const Admins = {
+  slug: 'admins' as const,
   admin: {
     useAsTitle: 'email',
   },
@@ -18,4 +18,4 @@ export const Admins: CollectionConfig = {
   },
   // Email and password are provided by Payload authentication.
   fields: [],
-}
+} satisfies CollectionConfig
