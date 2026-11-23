@@ -225,17 +225,29 @@ export interface Media {
  */
 export interface Cat {
   id: number;
-  name: string;
+  name?: string | null;
   breed: string;
   color: string;
   sex: string;
-  birthday: string;
-  owner: number | User;
-  wcf_id: string;
+  birthday?: string | null;
+  owner?: (number | null) | User;
+  wcf_id?: string | null;
   /**
    * Number of the cat in the catalog of the current show.
    */
   catalog_number: number;
+  /**
+   * Show class in the current show, e.g. CACIB or P.H. - WC.
+   */
+  show_class?: string | null;
+  /**
+   * WCF group in the current show, e.g. Adult or Junior (6–10 months).
+   */
+  wcf_group?: string | null;
+  /**
+   * WCF breed category (1–5) of the cat.
+   */
+  category?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -266,7 +278,7 @@ export interface Event {
   id: number;
   show: number | Show;
   judge: number | User;
-  steward: number | User;
+  steward?: (number | null) | User;
   name: string;
   event_type: 'table' | 'ring' | 'bis';
   event_date: string;
@@ -469,6 +481,9 @@ export interface CatsSelect<T extends boolean = true> {
   owner?: T;
   wcf_id?: T;
   catalog_number?: T;
+  show_class?: T;
+  wcf_group?: T;
+  category?: T;
   updatedAt?: T;
   createdAt?: T;
 }

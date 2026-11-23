@@ -25,7 +25,8 @@ export const Events: CollectionConfig = {
       name: 'steward',
       type: 'relationship',
       relationTo: 'users',
-      required: true,
+      // Optional until stewards are assigned; the show import does not know them yet.
+      required: false,
       index: true,
     },
     {
