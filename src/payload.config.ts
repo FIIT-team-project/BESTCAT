@@ -2,7 +2,7 @@ import { sqliteAdapter } from '@payloadcms/db-sqlite'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import path from 'path'
-import { buildConfig } from 'payload'
+import { buildConfig, ValidationError } from 'payload'
 import { fileURLToPath } from 'url'
 import sharp from 'sharp'
 
@@ -48,6 +48,27 @@ export default buildConfig({
   serverURL: process.env.SERVER_URL,
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
+  },
+  onInit: async (payload) => {
+    const email = process.env.ADMIN_EMAIL?.trim()
+    const password = process.env.ADMIN_PASSWORD
+    if (!email || !password) return
+
+    const collection = Admins.slug
+    const { totalDocs } = await payload.count({ collection })
+    if (totalDocs > 0) return
+
+    try {
+      await payload.create({ collection, data: { email, password } })
+    } catch (error) {
+      // Another instance with the same credentials may have created the account first.
+      if (!(error instanceof ValidationError)) throw error
+      const { totalDocs } = await payload.count({
+        collection,
+        where: { email: { equals: email.toLowerCase() } },
+      })
+      if (totalDocs === 0) throw error
+    }
   },
   db: sqliteAdapter({
     client: {

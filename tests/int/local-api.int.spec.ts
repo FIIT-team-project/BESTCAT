@@ -45,6 +45,7 @@ describe('Local API', () => {
     const payloadConfig = await config
     payload = await getPayload({
       key: databaseDir,
+      disableOnInit: true,
       config: {
         ...payloadConfig,
         secret: 'integration-test-secret',
