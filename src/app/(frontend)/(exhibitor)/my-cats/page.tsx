@@ -4,12 +4,8 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { requireExhibitor } from '@/lib/exhibitor/currentUser'
-import {
-  type ExhibitorEntry,
-  eventTypeLabels,
-  findExhibitorEntries,
-  getCatStatusStep,
-} from '@/lib/exhibitor/entries'
+import { eventTypeLabels, formatTime, getCatStatus } from '@/lib/catStatus'
+import { type ExhibitorEntry, findExhibitorEntries } from '@/lib/exhibitor/entries'
 
 export const metadata: Metadata = { title: 'My cats' }
 
@@ -18,11 +14,16 @@ function EntryDetail({ entry }: { entry: ExhibitorEntry }) {
     case 'waiting':
       return <>Queue number {entry.queue_number}</>
     case 'called':
-      return <>Called to: {entry.event.name}</>
+      return (
+        <>
+          Called to: {entry.event.name}
+          {entry.called_at && <> · {formatTime(entry.called_at)}</>}
+        </>
+      )
     case 'rated':
       return <>View rating</>
     default:
-      return <>{getCatStatusStep(entry.cat_status).description}</>
+      return <>{getCatStatus(entry.cat_status).description}</>
   }
 }
 
@@ -61,7 +62,7 @@ export default async function MyCatsPage() {
                   </CardHeader>
                   <CardContent className="flex items-center justify-between gap-2">
                     <Badge variant={entry.cat_status === 'called' ? 'default' : 'secondary'}>
-                      {getCatStatusStep(entry.cat_status).label}
+                      {getCatStatus(entry.cat_status).label}
                     </Badge>
                     <span className="text-sm text-muted-foreground">
                       <EntryDetail entry={entry} />

@@ -62,27 +62,39 @@ export const Cats: CollectionConfig = {
     },
     {
       name: 'show_class',
-      label: 'Show class',
-      type: 'text',
-      admin: {
-        description: 'Show class in the current show, e.g. CACIB or P.H. - WC.',
-      },
+      type: 'select',
+      options: [
+        'CACP',
+        'CACJ',
+        'CAC',
+        'CACIB',
+        'CAGCIB',
+        'CACE',
+        'GCACE',
+        'CACM',
+        'CAGPIB',
+        'CAPE',
+        'CAPIB',
+        'GCAPE',
+        'P.H. - WC',
+        'P.H. - WP',
+        'Veteran',
+        { label: 'PH Adult', value: 'PH_ADULT' },
+        { label: 'PH Neuter', value: 'PH_NEUTER' },
+      ],
     },
     {
       name: 'wcf_group',
-      label: 'WCF group',
       type: 'text',
-      admin: {
-        description: 'WCF group in the current show, e.g. Adult or Junior (6–10 months).',
-      },
     },
     {
       name: 'category',
       type: 'number',
       min: 1,
-      admin: {
-        description: 'WCF breed category (1–5) of the cat.',
-      },
+    },
+    {
+      name: 'ring_type',
+      type: 'text',
     },
   ],
 }

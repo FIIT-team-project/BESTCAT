@@ -236,18 +236,30 @@ export interface Cat {
    * Number of the cat in the catalog of the current show.
    */
   catalog_number: number;
-  /**
-   * Show class in the current show, e.g. CACIB or P.H. - WC.
-   */
-  show_class?: string | null;
-  /**
-   * WCF group in the current show, e.g. Adult or Junior (6–10 months).
-   */
+  show_class?:
+    | (
+        | 'CACP'
+        | 'CACJ'
+        | 'CAC'
+        | 'CACIB'
+        | 'CAGCIB'
+        | 'CACE'
+        | 'GCACE'
+        | 'CACM'
+        | 'CAGPIB'
+        | 'CAPE'
+        | 'CAPIB'
+        | 'GCAPE'
+        | 'P.H. - WC'
+        | 'P.H. - WP'
+        | 'Veteran'
+        | 'PH_ADULT'
+        | 'PH_NEUTER'
+      )
+    | null;
   wcf_group?: string | null;
-  /**
-   * WCF breed category (1–5) of the cat.
-   */
   category?: number | null;
+  ring_type?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -263,6 +275,8 @@ export interface Show {
   city: string;
   country: string;
   license_number: string;
+  date_from?: string | null;
+  date_to?: string | null;
   /**
    * Only one show can be active. Deactivate the current show before activating another.
    */
@@ -282,6 +296,10 @@ export interface Event {
   name: string;
   event_type: 'table' | 'ring' | 'bis';
   event_date: string;
+  /**
+   * Order of the judgement for the judge on that day (1st, 2nd, …).
+   */
+  judgement_number?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -294,7 +312,15 @@ export interface CatEventEntry {
   cat: number | Cat;
   event: number | Event;
   queue_number: number;
-  cat_status: 'registered' | 'waiting' | 'called' | 'exhibited' | 'rated';
+  cat_status: 'registered' | 'waiting' | 'called' | 'exhibited' | 'rated' | 'absent';
+  /**
+   * Set when the steward calls the cat.
+   */
+  called_at?: string | null;
+  place?: number | null;
+  title?: string | null;
+  score?: number | null;
+  text_rating?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -484,6 +510,7 @@ export interface CatsSelect<T extends boolean = true> {
   show_class?: T;
   wcf_group?: T;
   category?: T;
+  ring_type?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -498,6 +525,8 @@ export interface ShowsSelect<T extends boolean = true> {
   city?: T;
   country?: T;
   license_number?: T;
+  date_from?: T;
+  date_to?: T;
   is_active?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -513,6 +542,7 @@ export interface EventsSelect<T extends boolean = true> {
   name?: T;
   event_type?: T;
   event_date?: T;
+  judgement_number?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -525,6 +555,11 @@ export interface CatEventEntriesSelect<T extends boolean = true> {
   event?: T;
   queue_number?: T;
   cat_status?: T;
+  called_at?: T;
+  place?: T;
+  title?: T;
+  score?: T;
+  text_rating?: T;
   updatedAt?: T;
   createdAt?: T;
 }
