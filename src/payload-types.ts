@@ -225,13 +225,13 @@ export interface Media {
  */
 export interface Cat {
   id: number;
-  name: string;
+  name?: string | null;
   breed: string;
   color: string;
   sex: string;
-  birthday: string;
-  owner: number | User;
-  wcf_id: string;
+  birthday?: string | null;
+  owner?: (number | null) | User;
+  wcf_id?: string | null;
   /**
    * Number of the cat in the catalog of the current show.
    */
@@ -285,7 +285,7 @@ export interface Event {
   id: number;
   show: number | Show;
   judge: number | User;
-  steward: number | User;
+  steward?: (number | null) | User;
   name: string;
   event_type: 'table' | 'ring' | 'bis';
   event_date: string;

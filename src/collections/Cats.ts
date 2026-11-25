@@ -7,10 +7,12 @@ export const Cats: CollectionConfig = {
     defaultColumns: ['catalog_number', 'name', 'breed', 'owner', 'wcf_id'],
   },
   fields: [
+    // name, birthday, owner and wcf_id are temporarily optional because the show import
+    // spreadsheet does not contain them yet. See docs/show-import.md.
     {
       name: 'name',
       type: 'text',
-      required: true,
+      required: false,
     },
     {
       name: 'breed',
@@ -30,7 +32,7 @@ export const Cats: CollectionConfig = {
     {
       name: 'birthday',
       type: 'date',
-      required: true,
+      required: false,
       admin: {
         date: { pickerAppearance: 'dayOnly' },
       },
@@ -39,14 +41,14 @@ export const Cats: CollectionConfig = {
       name: 'owner',
       type: 'relationship',
       relationTo: 'users',
-      required: true,
+      required: false,
       index: true,
     },
     {
       name: 'wcf_id',
       label: 'WCF ID',
       type: 'text',
-      required: true,
+      required: false,
     },
     {
       name: 'catalog_number',

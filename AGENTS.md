@@ -1,7 +1,9 @@
 Check docs for project context
-We should use the dedicated docs folder for storing ADRs and other pieces of knowledge instead polluting the readme
+We should use the dedicated docs folder for storing ADRs and other pieces of knowledge instead polluting the readme.
 
-Use shadcn for standard components and explicitly ask me once before creating custom components
+Use shadcn for standard components and explicitly ask me once before creating custom components.
+
+Reference the relevant jira issue/s by id in commit messages and PRs, ask if you don't have them.
 
 # Agents
 

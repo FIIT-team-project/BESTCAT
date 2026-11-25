@@ -1,11 +1,14 @@
 import { type CollectionConfig, validations } from 'payload'
 
+import { importShowEndpoint } from './endpoints/importShowEndpoint'
+
 export const Shows: CollectionConfig = {
   slug: 'shows',
   admin: {
     useAsTitle: 'show_name',
     defaultColumns: ['show_name', 'city', 'country', 'is_active'],
   },
+  endpoints: [importShowEndpoint],
   fields: [
     {
       name: 'chief_steward',
@@ -82,6 +85,15 @@ export const Shows: CollectionConfig = {
         })
 
         return totalDocs === 0 || 'Another show is already active. Deactivate it first.'
+      },
+    },
+    {
+      name: 'import',
+      type: 'ui',
+      admin: {
+        components: {
+          Field: '/components/admin/ShowImport#ShowImport',
+        },
       },
     },
   ],
