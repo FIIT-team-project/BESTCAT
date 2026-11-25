@@ -74,9 +74,23 @@ export const Cats: CollectionConfig = {
         'CACM',
         'CAGPIB',
         'CAPE',
+        'CAPIB',
+        'GCAPE',
+        'P.H. - WC',
+        'P.H. - WP',
+        'Veteran',
         { label: 'PH Adult', value: 'PH_ADULT' },
         { label: 'PH Neuter', value: 'PH_NEUTER' },
       ],
+    },
+    {
+      name: 'wcf_group',
+      type: 'text',
+    },
+    {
+      name: 'category',
+      type: 'number',
+      min: 1,
     },
     {
       name: 'ring_type',

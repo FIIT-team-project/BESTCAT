@@ -248,10 +248,17 @@ export interface Cat {
         | 'CACM'
         | 'CAGPIB'
         | 'CAPE'
+        | 'CAPIB'
+        | 'GCAPE'
+        | 'P.H. - WC'
+        | 'P.H. - WP'
+        | 'Veteran'
         | 'PH_ADULT'
         | 'PH_NEUTER'
       )
     | null;
+  wcf_group?: string | null;
+  category?: number | null;
   ring_type?: string | null;
   updatedAt: string;
   createdAt: string;
@@ -501,6 +508,8 @@ export interface CatsSelect<T extends boolean = true> {
   wcf_id?: T;
   catalog_number?: T;
   show_class?: T;
+  wcf_group?: T;
+  category?: T;
   ring_type?: T;
   updatedAt?: T;
   createdAt?: T;
