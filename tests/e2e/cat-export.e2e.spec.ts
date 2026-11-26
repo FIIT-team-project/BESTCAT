@@ -16,7 +16,7 @@ test.describe('Cat PDF download', () => {
   const credentials = { email: `pdf-admin-${randomUUID()}@example.com`, password: 'test-password' }
 
   test.beforeAll(async () => {
-    payload = await getPayload({ config })
+    payload = await getPayload({ config, key: 'e2e-cat-export' })
     adminID = (await payload.create({ collection: 'admins', data: credentials })).id
     catID = (
       await payload.create({
@@ -50,6 +50,8 @@ test.describe('Cat PDF download', () => {
           city: 'Bratislava',
           country: 'Slovakia',
           license_number: 'L#123',
+          start_date: '2026-11-25',
+          end_date: '2026-11-25',
           is_active: false,
         },
       })
@@ -63,6 +65,7 @@ test.describe('Cat PDF download', () => {
           judge: judgeID,
           event_type: 'table',
           event_date: '2026-11-25',
+          status: 'planned',
         },
       })
     ).id

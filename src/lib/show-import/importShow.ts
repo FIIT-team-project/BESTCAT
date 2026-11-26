@@ -1,6 +1,6 @@
 import type { Payload, PayloadRequest } from 'payload'
 
-import type { Show } from '@/payload-types'
+import type { Cat, Show } from '@/payload-types'
 
 import type { ShowImportData, ShowImportOptions, ShowImportResult } from './types'
 
@@ -154,7 +154,8 @@ export async function importShow(
           breed: cat.breed,
           color: cat.color,
           sex: cat.sex,
-          show_class: cat.showClass,
+          // Payload validates the spreadsheet value against the collection's select options.
+          show_class: cat.showClass as Cat['show_class'],
           wcf_group: cat.wcfGroup,
           category: cat.category,
           name: cat.name,
@@ -182,6 +183,7 @@ export async function importShow(
             show: show.id,
             name: eventName(session, code),
             event_type: 'table',
+            status: 'planned',
             // Stored like the admin date picker (dayOnly) stores dates: noon UTC.
             event_date: `${options.sessionDates[session]}T12:00:00.000Z`,
             judge: options.judges[code],

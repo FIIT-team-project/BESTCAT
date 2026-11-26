@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
 
+import { eventStatusLabels, isEventTime } from '../lib/event-schedule'
+
 export const Events: CollectionConfig = {
   slug: 'events',
   admin: {
@@ -51,6 +53,20 @@ export const Events: CollectionConfig = {
       admin: {
         date: { pickerAppearance: 'dayOnly' },
       },
+    },
+    {
+      name: 'event_time',
+      type: 'text',
+      admin: { description: 'Start time at the venue in 24-hour format (HH:MM).' },
+      validate: (value: string | null | undefined) =>
+        value == null || value === '' || isEventTime(value) || 'Enter a time in HH:MM format.',
+    },
+    {
+      name: 'status',
+      type: 'select',
+      required: true,
+      defaultValue: 'planned',
+      options: Object.entries(eventStatusLabels).map(([value, label]) => ({ value, label })),
     },
     {
       name: 'judgement_number',

@@ -62,6 +62,8 @@ describe('Cat PDF export', () => {
         city: 'Bratislava',
         country: 'Slovakia',
         license_number: 'L#123',
+        start_date: '2026-11-25',
+        end_date: '2026-11-25',
         is_active: false,
       },
     })
@@ -111,6 +113,7 @@ describe('Cat PDF export', () => {
         judge: userID,
         event_type: 'table',
         event_date: '2026-11-25',
+        status: 'planned',
       },
     })
     for (let number = 31; number >= 1; number--) {
@@ -202,6 +205,8 @@ describe('Cat PDF export', () => {
           city: 'Žilina',
           country: 'Slovakia',
           license_number: 'L#123',
+          start_date: '2026-11-25',
+          end_date: '2026-11-25',
           is_active: false,
         },
       })
@@ -238,6 +243,7 @@ describe('Cat PDF export', () => {
             judge: userID,
             event_type,
             event_date: '2026-11-25',
+            status: 'planned',
           },
         }),
       )
@@ -250,6 +256,7 @@ describe('Cat PDF export', () => {
         judge: userID,
         event_type: 'table',
         event_date: '2026-11-25',
+        status: 'planned',
       },
     })
     for (const event of events) {
