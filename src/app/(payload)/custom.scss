@@ -3,17 +3,3 @@
   flex-wrap: wrap;
   gap: calc(var(--base) * 0.5);
 }
-
-.cat-export {
-  margin: var(--base) 0 calc(var(--base) * 2);
-  padding-top: calc(var(--base) * 1.5);
-  border-top: 1px solid var(--theme-elevation-150);
-
-  &__description {
-    color: var(--theme-elevation-500);
-  }
-
-  &__error {
-    color: var(--theme-error-500);
-  }
-}

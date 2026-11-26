@@ -88,9 +88,6 @@ Compose configuration; the Docker image build does not consume these settings.
 
 All build and runtime stages use `node:22-alpine`. Dependencies are installed inside
 Alpine so native packages such as Sharp and libSQL use their Linux musl binaries.
-The runtime image also installs system Chromium and Liberation fonts for
-[cat PDF export](cat-pdf-export.md). Local development downloads its browser with
-`pnpm pdf:install-browser`; Docker uses `PDF_CHROMIUM_PATH` from the image instead.
 See the
 [official Node.js image variants](https://github.com/nodejs/docker-node/blob/main/README.md#image-variants)
 and [non-root user guidance](https://github.com/nodejs/docker-node/blob/main/docs/BestPractices.md#non-root-user).
