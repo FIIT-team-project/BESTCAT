@@ -272,6 +272,8 @@ export interface Show {
   chief_steward: number | User;
   organization: string;
   show_name: string;
+  start_date?: string | null;
+  end_date?: string | null;
   city: string;
   country: string;
   license_number: string;
@@ -296,6 +298,11 @@ export interface Event {
   name: string;
   event_type: 'table' | 'ring' | 'bis';
   event_date: string;
+  /**
+   * Start time at the venue in 24-hour format (HH:MM).
+   */
+  event_time?: string | null;
+  status: 'planned' | 'ongoing' | 'finished';
   /**
    * Order of the judgement for the judge on that day (1st, 2nd, …).
    */
@@ -522,6 +529,8 @@ export interface ShowsSelect<T extends boolean = true> {
   chief_steward?: T;
   organization?: T;
   show_name?: T;
+  start_date?: T;
+  end_date?: T;
   city?: T;
   country?: T;
   license_number?: T;
@@ -542,6 +551,8 @@ export interface EventsSelect<T extends boolean = true> {
   name?: T;
   event_type?: T;
   event_date?: T;
+  event_time?: T;
+  status?: T;
   judgement_number?: T;
   updatedAt?: T;
   createdAt?: T;

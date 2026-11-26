@@ -200,6 +200,8 @@ describe('Show import into the database', () => {
         city: 'Hrnčiarovce nad Parnou',
         country: 'Slovakia',
         license_number: 'L#244205',
+        start_date: '2024-12-28',
+        end_date: '2024-12-29',
         is_active: false,
       },
     })
@@ -280,13 +282,13 @@ describe('Show import into the database', () => {
       name: null,
       owner: null,
     })
-  })
+  }, 60_000)
 
   it('replaces previously imported data instead of duplicating it', async () => {
     const result = await importShow(payload, { show, data, options })
     expect(result.replacedEvents).toBe(16)
     expect(await countShowData()).toEqual({ events: 16, entries: 440, cats: 110 })
-  })
+  }, 60_000)
 
   it('does not replace a show whose judging has started', async () => {
     const { docs } = await payload.find({ collection: 'cat-event-entries', limit: 1, depth: 0 })

@@ -1,13 +1,52 @@
-import { type CollectionConfig, validations } from 'payload'
+import { type CollectionConfig, ValidationError, validations } from 'payload'
 
-import { importShowEndpoint } from './endpoints/importShowEndpoint'
 import { exportShowCatsEndpoint } from './endpoints/exportShowCatsEndpoint'
+import { importShowEndpoint } from './endpoints/importShowEndpoint'
+
+const millisecondsPerDay = 24 * 60 * 60 * 1000
 
 export const Shows: CollectionConfig = {
   slug: 'shows',
   admin: {
     useAsTitle: 'show_name',
     defaultColumns: ['show_name', 'city', 'country', 'is_active'],
+  },
+  hooks: {
+    beforeValidate: [
+      ({ data, operation, originalDoc }) => {
+        const start = data?.start_date === undefined ? originalDoc?.start_date : data.start_date
+        const end = data?.end_date === undefined ? originalDoc?.end_date : data.end_date
+
+        // Existing shows with no dates can be edited before their dates are known.
+        if (
+          operation === 'update' &&
+          !start &&
+          !end &&
+          !originalDoc?.start_date &&
+          !originalDoc?.end_date
+        ) {
+          return data
+        }
+
+        const errors = []
+        if (!start) errors.push({ path: 'start_date', message: 'Enter the start date.' })
+        if (!end) errors.push({ path: 'end_date', message: 'Enter the end date.' })
+        if (
+          start &&
+          end &&
+          Math.floor(Date.parse(start) / millisecondsPerDay) >
+            Math.floor(Date.parse(end) / millisecondsPerDay)
+        ) {
+          errors.push({
+            path: 'end_date',
+            message: 'The end date must be on or after the start date.',
+          })
+        }
+        if (errors.length) throw new ValidationError({ errors })
+
+        return data
+      },
+    ],
   },
   endpoints: [importShowEndpoint, exportShowCatsEndpoint],
   fields: [
@@ -27,6 +66,16 @@ export const Shows: CollectionConfig = {
       name: 'show_name',
       type: 'text',
       required: true,
+    },
+    {
+      name: 'start_date',
+      type: 'date',
+      admin: { date: { pickerAppearance: 'dayOnly' } },
+    },
+    {
+      name: 'end_date',
+      type: 'date',
+      admin: { date: { pickerAppearance: 'dayOnly' } },
     },
     {
       name: 'city',

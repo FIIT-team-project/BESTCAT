@@ -80,8 +80,8 @@ test.describe('Admin access', () => {
     await expect(page.getByRole('heading', { name: /Unauthorized/ })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Log out', exact: true })).toHaveCount(0)
     await page.getByRole('link', { name: 'Go back', exact: true }).click()
-    await expect(page).toHaveURL(`${serverURL}/`)
-    await expect(page.getByRole('heading', { name: `Welcome back, ${user.email}` })).toBeVisible()
+    await expect(page).toHaveURL(`${serverURL}/show-home`)
+    await expect(page.getByRole('heading', { name: 'Current show', exact: true })).toBeVisible()
 
     const auth = await payload.auth({
       headers: new Headers({ Authorization: `JWT ${session.token}` }),

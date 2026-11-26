@@ -10,8 +10,8 @@ export type QueueEntry = CatEventEntry & { cat: Cat & { owner: User | number } }
 
 export type StaffRole = 'judge' | 'steward'
 
-const relationId = (value: number | { id: number }) =>
-  typeof value === 'object' ? value.id : value
+const relationId = (value: number | { id: number } | null | undefined) =>
+  typeof value === 'number' ? value : value?.id
 
 /** Admins can do everything; the judge can manage the queue and rate; the steward manages the queue. */
 export function getStaffRoles(event: Event, user: StaffUser): StaffRole[] {
@@ -95,7 +95,7 @@ export async function callEntry(payload: Payload, user: StaffUser, entryId: CatE
   })
 
   const owner = entry.cat.owner
-  if (typeof owner === 'object' && owner.phone_number) {
+  if (typeof owner === 'object' && owner?.phone_number) {
     try {
       await sendSms(payload, {
         to: owner.phone_number,
