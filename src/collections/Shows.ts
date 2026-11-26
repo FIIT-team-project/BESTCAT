@@ -1,7 +1,6 @@
 import { type CollectionConfig, validations } from 'payload'
 
 import { importShowEndpoint } from './endpoints/importShowEndpoint'
-import { exportShowCatsEndpoint } from './endpoints/exportShowCatsEndpoint'
 
 export const Shows: CollectionConfig = {
   slug: 'shows',
@@ -9,7 +8,7 @@ export const Shows: CollectionConfig = {
     useAsTitle: 'show_name',
     defaultColumns: ['show_name', 'city', 'country', 'is_active'],
   },
-  endpoints: [importShowEndpoint, exportShowCatsEndpoint],
+  endpoints: [importShowEndpoint],
   fields: [
     {
       name: 'chief_steward',
@@ -80,15 +79,6 @@ export const Shows: CollectionConfig = {
       admin: {
         components: {
           Field: '/components/admin/ShowImport#ShowImport',
-        },
-      },
-    },
-    {
-      name: 'export',
-      type: 'ui',
-      admin: {
-        components: {
-          Field: '/components/admin/ShowCatExport#ShowCatExport',
         },
       },
     },

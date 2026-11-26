@@ -20,10 +20,7 @@ FROM base AS runner
 ENV NODE_ENV=production \
     HOSTNAME=0.0.0.0 \
     PORT=3000 \
-    DATABASE_URL=file:/app/data/payload.db \
-    PDF_CHROMIUM_PATH=/usr/bin/chromium-browser
-
-RUN apk add --no-cache chromium font-liberation
+    DATABASE_URL=file:/app/data/payload.db
 
 RUN mkdir -p data media .next && chown -R node:node /app
 COPY --from=builder --chown=node:node /app/.next/standalone ./
