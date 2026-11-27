@@ -19,7 +19,7 @@ export default async function HomePage() {
 
   if (user?.collection === 'users') {
     const show = await findActiveShow(payload, user)
-    if (!show || !(await isShowStaff(payload, user, show))) redirect('/show-home')
+    if (!show || !(await isShowStaff(payload, user, show))) redirect('/exhibitor')
   }
 
   const fileURL = `vscode://file/${fileURLToPath(import.meta.url)}`

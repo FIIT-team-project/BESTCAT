@@ -8,7 +8,7 @@ import { eventTypeLabels, formatTime, getCatStatus } from '@/lib/catStatus'
 import { requireStaff } from '@/lib/events/currentStaff'
 import { type QueueEntry, findEventEntries, findStaffEvent } from '@/lib/events/queue'
 
-import { absentAction, callAction, revertAction } from '../actions'
+import { absentAction, callAction, revertAction } from '../../actions'
 
 export const metadata: Metadata = { title: 'Cat queue' }
 
@@ -34,7 +34,7 @@ function EntryActions({
   )
   const details = isJudge && (
     <Link
-      href={`/events/${eventId}/entries/${entry.id}`}
+      href={`/staff/events/${eventId}/entries/${entry.id}/rating`}
       className={buttonVariants({ size: 'sm' })}
     >
       Details

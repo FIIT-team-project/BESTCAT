@@ -40,11 +40,11 @@ test.describe('Regular user pages', () => {
     await page.getByLabel('Email', { exact: true }).fill(email)
     await page.getByLabel('Password', { exact: true }).fill(password)
     await page.getByRole('button', { name: 'Log in', exact: true }).click()
-    await expect(page).toHaveURL(`${serverURL}/show-home`)
+    await expect(page).toHaveURL(`${serverURL}/exhibitor`)
     await expect(page.getByRole('heading', { name: 'Current show', exact: true })).toBeVisible()
 
     await page.goto(`${serverURL}/login`)
-    await expect(page).toHaveURL(`${serverURL}/show-home`)
+    await expect(page).toHaveURL(`${serverURL}/exhibitor`)
     const logoutButton = page.getByRole('button', { name: 'Log out', exact: true })
     const confirmation = page.getByRole('alertdialog', { name: 'Log out' })
 
@@ -52,7 +52,7 @@ test.describe('Regular user pages', () => {
     await expect(confirmation).toBeVisible()
     await confirmation.getByRole('button', { name: 'Cancel', exact: true }).click()
     await expect(confirmation).toBeHidden()
-    await expect(page).toHaveURL(`${serverURL}/show-home`)
+    await expect(page).toHaveURL(`${serverURL}/exhibitor`)
     await page.reload()
     await expect(page.getByRole('heading', { name: 'Current show', exact: true })).toBeVisible()
 
@@ -135,11 +135,11 @@ test.describe('Regular user pages', () => {
       await page.getByLabel('Email', { exact: true }).fill(email)
       await page.getByLabel('Password', { exact: true }).fill(password)
       await page.getByRole('button', { name: 'Log in' }).click()
-      await expect(page).toHaveURL(`${serverURL}/show-home`)
+      await expect(page).toHaveURL(`${serverURL}/exhibitor`)
       await expect(page.getByRole('heading', { name: 'Winter Cat Show' })).toBeVisible()
       await expect(page.getByText('Dec 28, 2026 – Dec 29, 2026')).toBeVisible()
       await page.getByRole('link', { name: 'View all events' }).click()
-      await expect(page).toHaveURL(`${serverURL}/show-event`, { timeout: 30_000 })
+      await expect(page).toHaveURL(`${serverURL}/exhibitor/events`, { timeout: 30_000 })
 
       const schedule = page.getByRole('list', { name: 'Event schedule' })
       const eventNames = schedule.getByRole('heading')
@@ -203,7 +203,7 @@ test.describe('Regular user pages', () => {
     await page.getByLabel('New password', { exact: true }).fill('updated-user-password')
     await page.getByLabel('Confirm password', { exact: true }).fill('updated-user-password')
     await page.getByRole('button', { name: 'Reset password', exact: true }).click()
-    await expect(page).toHaveURL(`${serverURL}/show-home`)
+    await expect(page).toHaveURL(`${serverURL}/exhibitor`)
     await expect(page.getByRole('heading', { name: 'Current show', exact: true })).toBeVisible()
 
     await page.goto(resetURL)

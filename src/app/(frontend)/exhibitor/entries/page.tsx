@@ -47,7 +47,7 @@ export default async function MyCatsPage() {
         <ul className="flex flex-col gap-3">
           {entries.map((entry) => (
             <li key={entry.id}>
-              <Link href={`/my-cats/${entry.id}`} className="block rounded-xl">
+              <Link href={`/exhibitor/entries/${entry.id}`} className="block rounded-xl">
                 <Card size="sm" className="transition-colors hover:bg-muted/50">
                   <CardHeader>
                     <CardTitle>

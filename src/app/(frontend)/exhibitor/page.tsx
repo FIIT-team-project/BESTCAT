@@ -8,7 +8,7 @@ import { formatScheduleDate } from '@/lib/event-schedule'
 import { requireExhibitor } from '@/lib/exhibitor/currentUser'
 import { findActiveShow } from '@/lib/shows'
 
-import { AuthForm } from '../../(auth)/auth-form'
+import { AuthForm } from '../(auth)/auth-form'
 
 export const metadata: Metadata = { title: 'Current show' }
 
@@ -40,7 +40,7 @@ export default async function ShowHomePage() {
             </CardDescription>
           </CardHeader>
           <CardFooter>
-            <Link href="/show-event" className={buttonVariants()}>
+            <Link href="/exhibitor/events" className={buttonVariants()}>
               View all events
             </Link>
           </CardFooter>

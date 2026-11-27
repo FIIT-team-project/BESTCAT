@@ -58,7 +58,7 @@ export default async function ShowEventPage({
   return (
     <>
       <header>
-        <Link href="/show-home" className="text-sm underline-offset-4 hover:underline">
+        <Link href="/exhibitor" className="text-sm underline-offset-4 hover:underline">
           ← Current show
         </Link>
         <h1 className="mt-2 text-2xl font-semibold">Show events</h1>
@@ -67,7 +67,7 @@ export default async function ShowEventPage({
 
       {show && (
         <div className="flex items-center gap-2">
-          <Form action="/show-event" className="min-w-0 flex-1" role="search" key={q}>
+          <Form action="/exhibitor/events" className="min-w-0 flex-1" role="search" key={q}>
             {Object.entries(filters).map(([name, value]) => (
               <input key={name} type="hidden" name={name} value={value} />
             ))}
@@ -94,7 +94,7 @@ export default async function ShowEventPage({
             </PopoverTrigger>
             <PopoverContent align="end">
               <PopoverTitle>Filter events</PopoverTitle>
-              <Form action="/show-event">
+              <Form action="/exhibitor/events">
                 <input type="hidden" name="q" value={q} />
                 <FieldGroup className="gap-3">
                   <Field>
@@ -129,7 +129,7 @@ export default async function ShowEventPage({
                     <Button type="submit">Apply filters</Button>
                     {hasFilters && (
                       <Link
-                        href={{ pathname: '/show-event', query: q ? { q } : undefined }}
+                        href={{ pathname: '/exhibitor/events', query: q ? { q } : undefined }}
                         className={buttonVariants({ variant: 'outline' })}
                       >
                         Clear filters

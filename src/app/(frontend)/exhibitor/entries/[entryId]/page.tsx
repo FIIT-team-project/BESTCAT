@@ -34,7 +34,7 @@ export default async function CatProgressPage({
 
   return (
     <>
-      <Link href="/my-cats" className="text-sm underline-offset-4 hover:underline">
+      <Link href="/exhibitor/entries" className="text-sm underline-offset-4 hover:underline">
         ← My cats
       </Link>
 

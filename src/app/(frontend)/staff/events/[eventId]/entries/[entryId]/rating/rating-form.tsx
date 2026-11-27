@@ -7,7 +7,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field
 import { Input } from '@/components/ui/input'
 import type { CatEventEntry } from '@/payload-types'
 
-import { rateAction } from '../../../actions'
+import { rateAction } from '../../../../actions'
 
 type Props = {
   entry: Pick<CatEventEntry, 'id' | 'title' | 'score' | 'place' | 'text_rating'>
