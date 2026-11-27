@@ -65,7 +65,9 @@ export function ShowImport() {
   const [dates, setDates] = useState<Record<string, string>>({})
   const [requestErrors, setRequestErrors] = useState<string[]>([])
   const [result, setResult] = useState<ShowImportResult | null>(null)
-  const [busy, setBusy] = useState(false)
+  const [pending, setPending] = useState<'preview' | 'import' | null>(null)
+  const busy = pending !== null
+  const importing = pending === 'import'
 
   useEffect(() => {
     if (!id) return
@@ -103,12 +105,12 @@ export function ShowImport() {
   }
 
   const checkFile = async () => {
-    setBusy(true)
+    setPending('preview')
     setResult(null)
     try {
       setPreview((await send('preview')) as Preview | null)
     } finally {
-      setBusy(false)
+      setPending(null)
     }
   }
 
@@ -123,7 +125,7 @@ export function ShowImport() {
         preview.sessions.map((session) => [session, dates[session]]),
       ),
     }
-    setBusy(true)
+    setPending('import')
     try {
       const imported = (await send('import', options)) as ShowImportResult | null
       if (imported) {
@@ -132,7 +134,7 @@ export function ShowImport() {
         toast.success(`Imported ${imported.cats} cats into ${imported.events} events.`)
       }
     } finally {
-      setBusy(false)
+      setPending(null)
     }
   }
 
@@ -293,7 +295,7 @@ export function ShowImport() {
               )}
 
               <Button disabled={missingChoices || busy} onClick={runImport} margin={false}>
-                Import
+                {importing ? 'Importing…' : 'Import'}
               </Button>
             </>
           )}
