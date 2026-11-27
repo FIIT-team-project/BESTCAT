@@ -62,8 +62,6 @@ describe('Cat PDF export', () => {
         city: 'Bratislava',
         country: 'Slovakia',
         license_number: 'L#123',
-        start_date: '2026-11-25',
-        end_date: '2026-11-25',
         is_active: false,
       },
     })
@@ -112,7 +110,7 @@ describe('Cat PDF export', () => {
         show: show.id,
         judge: userID,
         event_type: 'table',
-        event_date: '2026-11-25',
+        start_time: '2026-11-25T12:00:00.001Z',
         status: 'planned',
       },
     })
@@ -205,8 +203,6 @@ describe('Cat PDF export', () => {
           city: 'Žilina',
           country: 'Slovakia',
           license_number: 'L#123',
-          start_date: '2026-11-25',
-          end_date: '2026-11-25',
           is_active: false,
         },
       })
@@ -233,7 +229,7 @@ describe('Cat PDF export', () => {
       )
     }
     const events = []
-    for (const event_type of ['table', 'ring', 'bis'] as const) {
+    for (const event_type of ['table', 'ring'] as const) {
       events.push(
         await payload.create({
           collection: 'events',
@@ -242,7 +238,7 @@ describe('Cat PDF export', () => {
             show: show.id,
             judge: userID,
             event_type,
-            event_date: '2026-11-25',
+            start_time: '2026-11-25T12:00:00.001Z',
             status: 'planned',
           },
         }),
@@ -255,7 +251,7 @@ describe('Cat PDF export', () => {
         show: otherShow.id,
         judge: userID,
         event_type: 'table',
-        event_date: '2026-11-25',
+        start_time: '2026-11-25T12:00:00.001Z',
         status: 'planned',
       },
     })

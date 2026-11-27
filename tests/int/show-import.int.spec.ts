@@ -200,8 +200,6 @@ describe('Show import into the database', () => {
         city: 'Hrnčiarovce nad Parnou',
         country: 'Slovakia',
         license_number: 'L#244205',
-        start_date: '2024-12-28',
-        end_date: '2024-12-29',
         is_active: false,
       },
     })
@@ -250,7 +248,7 @@ describe('Show import into the database', () => {
         show: show.id,
         judge: judges[0].id,
         event_type: 'table',
-        event_date: '2024-12-28',
+        start_time: '2024-12-28T09:00:00+01:00',
         status: 'ongoing',
       },
     })

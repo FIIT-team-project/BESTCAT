@@ -1,12 +1,12 @@
 import type { CollectionConfig } from 'payload'
 
-import { eventStatusLabels, isEventTime } from '../lib/event-schedule'
+import { eventStatusLabels } from '../lib/event-schedule'
 
 export const Events: CollectionConfig = {
   slug: 'events',
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'show', 'event_type', 'event_date', 'judge', 'steward'],
+    defaultColumns: ['name', 'show', 'event_type', 'start_time', 'judge', 'steward'],
   },
   fields: [
     {
@@ -41,25 +41,18 @@ export const Events: CollectionConfig = {
       type: 'select',
       required: true,
       options: [
-        { label: 'Table judging', value: 'table' },
+        { label: 'Table', value: 'table' },
         { label: 'Ring', value: 'ring' },
-        { label: 'Best in Show', value: 'bis' },
       ],
     },
     {
-      name: 'event_date',
+      name: 'start_time',
       type: 'date',
       required: true,
       admin: {
-        date: { pickerAppearance: 'dayOnly' },
+        date: { pickerAppearance: 'dayAndTime', displayFormat: 'dd MMM yyyy HH:mm' },
+        description: 'The picker uses your browser timezone. The schedule uses Bratislava time.',
       },
-    },
-    {
-      name: 'event_time',
-      type: 'text',
-      admin: { description: 'Start time at the venue in 24-hour format (HH:MM).' },
-      validate: (value: string | null | undefined) =>
-        value == null || value === '' || isEventTime(value) || 'Enter a time in HH:MM format.',
     },
     {
       name: 'status',
@@ -67,14 +60,6 @@ export const Events: CollectionConfig = {
       required: true,
       defaultValue: 'planned',
       options: Object.entries(eventStatusLabels).map(([value, label]) => ({ value, label })),
-    },
-    {
-      name: 'judgement_number',
-      type: 'number',
-      min: 1,
-      admin: {
-        description: 'Order of the judgement for the judge on that day (1st, 2nd, …).',
-      },
     },
   ],
 }

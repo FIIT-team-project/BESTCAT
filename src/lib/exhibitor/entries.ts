@@ -29,10 +29,16 @@ export async function findExhibitorEntries(
     },
     depth: 2,
     limit: 0,
-    sort: ['event.event_date', 'queue_number'],
   })
 
-  return docs.filter(isPopulated)
+  return docs
+    .filter(isPopulated)
+    .sort(
+      (a, b) =>
+        Date.parse(a.event.start_time) - Date.parse(b.event.start_time) ||
+        a.queue_number - b.queue_number ||
+        a.id - b.id,
+    )
 }
 
 /** A single entry of the user's cat, or null when it does not exist or belongs to someone else. */

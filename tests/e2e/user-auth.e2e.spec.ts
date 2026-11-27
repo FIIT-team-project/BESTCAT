@@ -80,8 +80,6 @@ test.describe('Regular user pages', () => {
           city: 'Bratislava',
           country: 'Slovakia',
           license_number: 'L#244205',
-          start_date: '2026-12-28',
-          end_date: '2026-12-29',
           is_active: active,
         },
       })
@@ -90,7 +88,7 @@ test.describe('Regular user pages', () => {
     }
     const createEvent = (
       show: number,
-      data: Pick<Event, 'name' | 'event_date' | 'event_time' | 'event_type' | 'status'>,
+      data: Pick<Event, 'name' | 'start_time' | 'event_type' | 'status'>,
       judge = staff.id,
     ) =>
       payload.create({
@@ -103,21 +101,19 @@ test.describe('Regular user pages', () => {
       const oldShow = await createShow('Old Cat Show', false)
       const afternoon = await createEvent(activeShow, {
         name: 'Afternoon ring',
-        event_date: '2026-12-28',
-        event_time: '14:00',
+        start_time: '2026-12-28T14:00:00+01:00',
         event_type: 'ring',
         status: 'ongoing',
       })
       await createEvent(activeShow, {
         name: 'Best in Show',
-        event_date: '2026-12-29',
-        event_type: 'bis',
+        start_time: '2026-12-29T12:00:00.001Z',
+        event_type: 'table',
         status: 'planned',
       })
       const morning = await createEvent(activeShow, {
         name: 'Morning judging',
-        event_date: '2026-12-28',
-        event_time: '09:00',
+        start_time: '2026-12-28T09:00:00+01:00',
         event_type: 'table',
         status: 'finished',
       })
@@ -125,8 +121,7 @@ test.describe('Regular user pages', () => {
         oldShow,
         {
           name: 'Old judging',
-          event_date: '2026-12-28',
-          event_time: '08:00',
+          start_time: '2026-12-28T08:00:00+01:00',
           event_type: 'table',
           status: 'finished',
         },

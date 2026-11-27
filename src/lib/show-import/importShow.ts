@@ -1,6 +1,7 @@
 import type { Payload, PayloadRequest } from 'payload'
 
 import type { Cat, Show } from '@/payload-types'
+import { eventStartForDay } from '../event-schedule'
 
 import type { ShowImportData, ShowImportOptions, ShowImportResult } from './types'
 
@@ -113,7 +114,7 @@ export async function importShow(
 ): Promise<ShowImportResult> {
   await checkOptions(payload, data, options, req)
 
-  // Only table judging is imported; ring and BIS events of the show are left alone.
+  // Only table judging is imported; ring events of the show are left alone.
   const { docs: previousEvents } = await payload.find({
     collection: 'events',
     where: { and: [{ show: { equals: show.id } }, { event_type: { equals: 'table' } }] },
@@ -184,8 +185,7 @@ export async function importShow(
             name: eventName(session, code),
             event_type: 'table',
             status: 'planned',
-            // Stored like the admin date picker (dayOnly) stores dates: noon UTC.
-            event_date: `${options.sessionDates[session]}T12:00:00.000Z`,
+            start_time: eventStartForDay(options.sessionDates[session]),
             judge: options.judges[code],
             steward: options.stewards?.[code] ?? undefined,
           },

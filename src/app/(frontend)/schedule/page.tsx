@@ -56,7 +56,7 @@ export default async function SchedulePage() {
                           <time dateTime={event.day}>{formatScheduleDate(event.day)}</time>
                           {' · '}
                           {time ? (
-                            <time dateTime={time}>{time}</time>
+                            <time dateTime={event.start_time}>{time}</time>
                           ) : (
                             'Time to be announced'
                           )}

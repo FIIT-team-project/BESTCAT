@@ -3,6 +3,8 @@ import { cache } from 'react'
 
 import type { Show, User } from '@/payload-types'
 
+import { eventDay, eventTime } from './event-schedule'
+
 // The public schedule reads only the active show's display fields.
 export const findActiveShow = cache(async (payload: Payload) => {
   const { docs } = await payload.find({
@@ -10,7 +12,7 @@ export const findActiveShow = cache(async (payload: Payload) => {
     overrideAccess: true,
     depth: 0,
     limit: 1,
-    select: { show_name: true, start_date: true, end_date: true },
+    select: { show_name: true },
     where: { is_active: { equals: true } },
   })
 
@@ -79,14 +81,14 @@ export async function findShowEvents(payload: Payload, showId: Show['id']) {
     overrideAccess: true,
     depth: 0,
     pagination: false,
-    select: { name: true, status: true, event_type: true, event_date: true, event_time: true },
+    select: { name: true, status: true, event_type: true, start_time: true },
     where: { show: { equals: showId } },
   })
 
   const events = docs.map((event) => ({
     ...event,
-    day: event.event_date.slice(0, 10),
-    time: event.event_time,
+    day: eventDay(event.start_time),
+    time: eventTime(event.start_time),
   }))
   return events.sort(
     (a, b) =>

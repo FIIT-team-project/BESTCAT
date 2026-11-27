@@ -27,7 +27,7 @@ async function pdfResponse(req: PayloadRequest, cats: Cat[], show: Show) {
   }
 }
 
-/** Finds distinct cats through this show's judging entries, including table, ring and BIS. */
+/** Finds distinct cats through this show's table and ring judging entries. */
 export const exportShowCatsEndpoint: Endpoint = {
   path: '/:id/export-pdf',
   method: 'get',

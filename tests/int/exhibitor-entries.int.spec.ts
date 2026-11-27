@@ -47,8 +47,6 @@ describe('Exhibitor cat entries', () => {
         city: 'Bratislava',
         country: 'Slovakia',
         license_number: 'L#244205',
-        start_date: '2026-12-28',
-        end_date: '2026-12-29',
         is_active: isActive,
       },
     })
@@ -60,7 +58,7 @@ describe('Exhibitor cat entries', () => {
         steward: judge.id,
         name: 'Table 1',
         event_type: 'table',
-        event_date: '2026-12-28',
+        start_time: '2026-12-28T12:00:00.001Z',
         status: 'planned',
       },
     })

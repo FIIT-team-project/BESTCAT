@@ -6,7 +6,7 @@ import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { requireExhibitor } from '@/lib/exhibitor/currentUser'
 import { getCatStatus } from '@/lib/catStatus'
-import { formatScheduleDate } from '@/lib/event-schedule'
+import { eventDay, eventTime, formatScheduleDate } from '@/lib/event-schedule'
 import { type ExhibitorEntry, findExhibitorEntries } from '@/lib/exhibitor/entries'
 
 export const metadata: Metadata = { title: 'My Entries · Upcoming' }
@@ -29,7 +29,7 @@ function groupEntriesByEvent(entries: ExhibitorEntry[]): EventGroup[] {
 
   return [...groups.values()].sort(
     (a, b) =>
-      Date.parse(a.event.event_date) - Date.parse(b.event.event_date) || a.event.id - b.event.id,
+      Date.parse(a.event.start_time) - Date.parse(b.event.start_time) || a.event.id - b.event.id,
   )
 }
 
@@ -69,10 +69,10 @@ export default async function UpcomingEntriesPage() {
                       <h2 className="text-base font-semibold">{event.name}</h2>
                     </CardTitle>
                     <CardDescription>
-                      <time dateTime={event.event_date}>
-                        {formatScheduleDate(event.event_date.slice(0, 10))}
+                      <time dateTime={event.start_time}>
+                        {formatScheduleDate(eventDay(event.start_time))}
                         {' · '}
-                        {event.event_time ?? 'Time to be announced'}
+                        {eventTime(event.start_time) ?? 'Time to be announced'}
                       </time>
                       {' · Upcoming'}
                     </CardDescription>

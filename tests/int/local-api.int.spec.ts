@@ -32,12 +32,10 @@ describe('Local API', () => {
     city: 'Bratislava',
     country: 'Slovakia',
     license_number: 'L#244205',
-    start_date: '2026-12-28',
-    end_date: '2026-12-29',
   }
 
   const createShow = (
-    data: Partial<Pick<Show, 'show_name' | 'is_active' | 'start_date' | 'end_date'>> = {},
+    data: Partial<Pick<Show, 'show_name' | 'is_active'>> = {},
   ) =>
     payload.create({
       collection: 'shows',
@@ -295,24 +293,6 @@ describe('Local API', () => {
       data: { show_name: 'Updated active show', is_active: true },
     })
     expect(updated.is_active).toBe(true)
-  })
-
-  it('requires dates for new shows and checks the range on partial updates', async () => {
-    await expect(createShow({ start_date: null, end_date: null })).rejects.toMatchObject({
-      data: {
-        errors: [
-          expect.objectContaining({ path: 'start_date' }),
-          expect.objectContaining({ path: 'end_date' }),
-        ],
-      },
-    })
-
-    const show = await createShow()
-    await expect(
-      payload.update({ collection: 'shows', id: show.id, data: { end_date: '2026-12-27' } }),
-    ).rejects.toMatchObject({
-      data: { errors: [expect.objectContaining({ path: 'end_date' })] },
-    })
   })
 
   it('rejects a second active show on both create and update', async () => {

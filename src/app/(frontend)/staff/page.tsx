@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Empty, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { eventTypeLabels } from '@/lib/catStatus'
-import { formatScheduleDate, groupEventsByStatus } from '@/lib/event-schedule'
+import { eventDay, eventTime, formatScheduleDate, groupEventsByStatus } from '@/lib/event-schedule'
 import { requireStaff } from '@/lib/events/currentStaff'
 import { getStaffRoles } from '@/lib/events/queue'
 import { findActiveShow, findShowRoles, showRoleLinks } from '@/lib/shows'
@@ -38,15 +38,14 @@ export default async function StaffEventsPage() {
             }),
           }
         : undefined,
-    sort: ['-event_date', '-event_time'],
+    sort: '-start_time',
     pagination: false,
     depth: 1,
     select: {
       name: true,
       show: true,
       event_type: true,
-      event_date: true,
-      event_time: true,
+      start_time: true,
       status: true,
       judge: true,
       steward: true,
@@ -67,8 +66,8 @@ export default async function StaffEventsPage() {
           </h2>
           <ol className="flex flex-col gap-3">
             {events.map((event) => {
-              const day = event.event_date.slice(0, 10)
-              const time = event.event_time
+              const day = eventDay(event.start_time)
+              const time = eventTime(event.start_time)
 
               const card = (
                 <Card size="sm" className="transition-colors group-hover/event-link:bg-muted/50">
@@ -80,7 +79,7 @@ export default async function StaffEventsPage() {
                       <time dateTime={day}>{formatScheduleDate(day)}</time>
                       {' · '}
                       {time ? (
-                        <time dateTime={time}>{time}</time>
+                        <time dateTime={event.start_time}>{time}</time>
                       ) : (
                         'Time to be announced'
                       )}

@@ -43,9 +43,8 @@ export const getCatStatus = (status: CatStatus) =>
     : (catStatusSteps.find((step) => step.value === status) ?? catStatusSteps[0])
 
 export const eventTypeLabels: Record<Event['event_type'], string> = {
-  table: 'Table judging',
+  table: 'Table',
   ring: 'Ring',
-  bis: 'Best in Show',
 }
 
 const timeFormat = new Intl.DateTimeFormat('sk-SK', {

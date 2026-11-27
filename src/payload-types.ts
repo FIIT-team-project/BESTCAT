@@ -272,13 +272,9 @@ export interface Show {
   chief_steward: number | User;
   organization: string;
   show_name: string;
-  start_date?: string | null;
-  end_date?: string | null;
   city: string;
   country: string;
   license_number: string;
-  date_from?: string | null;
-  date_to?: string | null;
   /**
    * Only one show can be active. Deactivate the current show before activating another.
    */
@@ -296,17 +292,12 @@ export interface Event {
   judge: number | User;
   steward?: (number | null) | User;
   name: string;
-  event_type: 'table' | 'ring' | 'bis';
-  event_date: string;
+  event_type: 'table' | 'ring';
   /**
-   * Start time at the venue in 24-hour format (HH:MM).
+   * The picker uses your browser timezone. The schedule uses Bratislava time.
    */
-  event_time?: string | null;
+  start_time: string;
   status: 'planned' | 'ongoing' | 'finished';
-  /**
-   * Order of the judgement for the judge on that day (1st, 2nd, …).
-   */
-  judgement_number?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -529,13 +520,9 @@ export interface ShowsSelect<T extends boolean = true> {
   chief_steward?: T;
   organization?: T;
   show_name?: T;
-  start_date?: T;
-  end_date?: T;
   city?: T;
   country?: T;
   license_number?: T;
-  date_from?: T;
-  date_to?: T;
   is_active?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -550,10 +537,8 @@ export interface EventsSelect<T extends boolean = true> {
   steward?: T;
   name?: T;
   event_type?: T;
-  event_date?: T;
-  event_time?: T;
+  start_time?: T;
   status?: T;
-  judgement_number?: T;
   updatedAt?: T;
   createdAt?: T;
 }
