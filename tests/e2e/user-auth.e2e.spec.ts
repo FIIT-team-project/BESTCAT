@@ -41,22 +41,30 @@ test.describe('Regular user pages', () => {
     await page.getByLabel('Password', { exact: true }).fill(password)
     await page.getByRole('button', { name: 'Log in', exact: true }).click()
     await expect(page).toHaveURL(`${serverURL}/live-calling`)
-    await expect(page.getByRole('navigation', { name: 'Show views' })).toBeVisible()
 
     await page.goto(`${serverURL}/login`)
     await expect(page).toHaveURL(`${serverURL}/live-calling`)
-    const logoutButton = page.getByRole('button', { name: 'Log out', exact: true })
+    const accountMenu = page.getByRole('button', { name: 'Login test user', exact: true })
+    await expect(accountMenu.getByText('L', { exact: true })).toBeVisible()
+    const logoutOption = page.getByRole('menuitem', { name: 'Log out', exact: true })
     const confirmation = page.getByRole('alertdialog', { name: 'Log out' })
 
-    await logoutButton.click()
+    await accountMenu.click()
+    await logoutOption.click()
     await expect(confirmation).toBeVisible()
     await confirmation.getByRole('button', { name: 'Cancel', exact: true }).click()
     await expect(confirmation).toBeHidden()
+    await expect(accountMenu).toBeFocused()
     await expect(page).toHaveURL(`${serverURL}/live-calling`)
     await page.reload()
-    await expect(page.getByRole('navigation', { name: 'Show views' })).toBeVisible()
+    await expect(
+      page
+        .getByRole('navigation', { name: 'Main' })
+        .getByRole('link', { name: 'Show', exact: true }),
+    ).toHaveAttribute('aria-current', 'page')
 
-    await logoutButton.click()
+    await accountMenu.click()
+    await logoutOption.click()
     await confirmation.getByRole('button', { name: 'Log out', exact: true }).click()
     await expect(page).toHaveURL(`${serverURL}/login`)
     await page.goto(serverURL)
@@ -134,6 +142,10 @@ test.describe('Regular user pages', () => {
       )
 
       await page.goto(`${serverURL}/schedule`)
+      await expect(page.getByRole('banner')).toContainText('Winter Cat Show')
+      const navigation = page.getByRole('navigation', { name: 'Main' })
+      const showLink = navigation.getByRole('link', { name: 'Show', exact: true })
+      await expect(showLink).toHaveAttribute('aria-current', 'location')
       await expect(page.getByRole('heading', { level: 2 })).toHaveText([
         'Ongoing',
         'Upcoming',
@@ -166,6 +178,8 @@ test.describe('Regular user pages', () => {
       })
       await page.goto(`${serverURL}/login`)
       await expect(page).toHaveURL(`${serverURL}/staff`)
+      const staffLink = navigation.getByRole('link', { name: 'My Events', exact: true })
+      await expect(staffLink).toHaveAttribute('aria-current', 'page')
       await expect(page.getByRole('heading', { level: 1 })).toHaveText('My Events')
       await expect(page.getByRole('heading', { level: 3 })).toHaveText([
         'Afternoon ring',
@@ -175,6 +189,7 @@ test.describe('Regular user pages', () => {
       const queueURL = `${serverURL}/staff/events/${afternoon.id}/steward`
       await expect(page).toHaveURL(queueURL, { timeout: 30_000 })
       await expect(page.getByRole('heading', { name: 'Afternoon ring' })).toBeVisible()
+      await expect(staffLink).toHaveAttribute('aria-current', 'location')
     } finally {
       if (showIds.length) {
         await payload.delete({ collection: 'events', where: { show: { in: showIds } } })

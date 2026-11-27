@@ -1,4 +1,5 @@
-import type { Payload } from 'payload'
+import type { Payload, TypedUser } from 'payload'
+import { formatAdminURL } from 'payload/shared'
 import { cache } from 'react'
 
 import type { Show, User } from '@/payload-types'
@@ -70,6 +71,36 @@ export async function getShowLandingPath(payload: Payload, user: User) {
   const show = await findActiveShow(payload)
   const [primaryRole] = await findShowRoles(payload, user, show?.id)
   return primaryRole ? showRoleLinks[primaryRole].href : '/'
+}
+
+export async function getShowNavigation(
+  payload: Payload,
+  user: TypedUser | null,
+  showId?: Show['id'],
+) {
+  const links: { href: string; label: string; sectionHref?: string }[] = []
+
+  if (user?.collection === 'users') {
+    const roles = await findShowRoles(payload, user, showId)
+    links.push(...new Set(roles.map((role) => showRoleLinks[role])))
+  } else if (user?.collection === 'admins') {
+    links.push({ href: '/staff', label: 'Staff events', sectionHref: '/staff/events' })
+  }
+
+  links.push({ href: '/live-calling', label: 'Show', sectionHref: '/schedule' })
+  if (user?.collection === 'admins') {
+    links.push({ href: payload.config.routes.admin, label: 'Admin panel' })
+  }
+
+  const { admin, routes } = payload.config
+  return {
+    links,
+    adminLogoutHref:
+      user?.collection === 'admins'
+        ? formatAdminURL({ adminRoute: routes.admin, path: admin.routes.logout })
+        : undefined,
+    name: user?.collection === 'users' ? user.name?.trim() || user.email : user?.email,
+  }
 }
 
 // The public schedule passes the active show ID and reads only event display fields.

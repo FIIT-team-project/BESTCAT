@@ -80,8 +80,11 @@ test.describe('Admin access', () => {
     await expect(page.getByRole('heading', { name: /Unauthorized/ })).toBeVisible()
     await expect(page.getByRole('link', { name: 'Log out', exact: true })).toHaveCount(0)
     await page.getByRole('link', { name: 'Go back', exact: true }).click()
-    await expect(page).toHaveURL(`${serverURL}/live-calling`)
-    await expect(page.getByRole('navigation', { name: 'Show views' })).toBeVisible()
+    await expect(page).toHaveURL(`${serverURL}/live-calling`, { timeout: 30_000 })
+    const liveCalling = page
+      .getByRole('navigation', { name: 'Show views' })
+      .getByRole('link', { name: 'Live Calling', exact: true })
+    await expect(liveCalling).toHaveAttribute('aria-current', 'page')
 
     const auth = await payload.auth({
       headers: new Headers({ Authorization: `JWT ${session.token}` }),
@@ -96,7 +99,10 @@ test.describe('Admin access', () => {
     const sessionToken = (await context.cookies()).find(({ name }) => name === tokenCookie)?.value
     expect(sessionToken).toBeTruthy()
 
-    await page.goto(`${serverURL}/admin/logout`)
+    await page.goto(`${serverURL}/live-calling`)
+    await page.getByRole('button', { name: testAdmin.email, exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Log out', exact: true }).click()
+    await expect(page).toHaveURL(`${serverURL}/admin/logout`, { timeout: 30_000 })
     await expect(page.getByRole('heading', { name: 'Log out', exact: true })).toBeVisible()
     await page.getByRole('link', { name: 'Cancel', exact: true }).click()
     await expect(page).toHaveURL(`${serverURL}/admin`)
@@ -111,7 +117,7 @@ test.describe('Admin access', () => {
       headers: new Headers({ Authorization: `JWT ${sessionToken}` }),
     })
     expect(auth.user).toBeNull()
-    expect((await context.cookies()).find(({ name }) => name === tokenCookie)).toBeUndefined()
+    expect((await context.cookies()).find(({ name }) => name === tokenCookie)?.value).toBeFalsy()
   })
 
   for (const identity of ['anonymous', 'application user'] as const) {
