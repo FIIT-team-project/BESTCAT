@@ -14,7 +14,10 @@ const relationId = (value: number | { id: number } | null | undefined) =>
   typeof value === 'number' ? value : value?.id
 
 /** Admins can do everything; the judge can manage the queue and rate; the steward manages the queue. */
-export function getStaffRoles(event: Event, user: StaffUser): StaffRole[] {
+export function getStaffRoles(
+  event: Pick<Event, 'judge' | 'steward'>,
+  user: StaffUser,
+): StaffRole[] {
   if (user.collection === 'admins') return ['judge', 'steward']
 
   const roles: StaffRole[] = []

@@ -6,6 +6,9 @@ import { cookies, headers } from 'next/headers.js'
 import { redirect } from 'next/navigation'
 import { generatePayloadCookie, getPayload, ValidationError } from 'payload'
 
+import { getShowLandingPath } from '@/lib/shows'
+import type { User } from '@/payload-types'
+
 export type AuthState = { error?: string; success?: boolean }
 
 const getString = (data: FormData, name: string) => {
@@ -19,13 +22,16 @@ export async function loginAction(_state: AuthState, data: FormData): Promise<Au
 
   if (!email || !password) return { error: 'Enter your email and password.' }
 
+  let user: User
   try {
-    await login({ collection: 'users', config, email, password })
+    const result = await login({ collection: 'users', config, email, password })
+    if (!result.user) throw new Error('Payload did not return a signed-in user.')
+    user = result.user
   } catch {
     return { error: 'Unable to log in. Check your email and password and try again.' }
   }
 
-  redirect('/')
+  redirect(await getShowLandingPath(await getPayload({ config }), user))
 }
 
 export async function forgotPasswordAction(_state: AuthState, data: FormData): Promise<AuthState> {
@@ -87,7 +93,7 @@ export async function resetPasswordAction(_state: AuthState, data: FormData): Pr
     return { error: 'Unable to reset your password. This link may be invalid or expired.' }
   }
 
-  redirect('/')
+  redirect('/login')
 }
 
 export async function logoutAction(_state: AuthState, _data: FormData): Promise<AuthState> {

@@ -43,7 +43,10 @@ export default async function RateEntryPage({
 
   return (
     <>
-      <Link href={`/events/${eventId}`} className="text-sm underline-offset-4 hover:underline">
+      <Link
+        href={`/staff/events/${eventId}/steward`}
+        className="text-sm underline-offset-4 hover:underline"
+      >
         ← {entry.event.name}
       </Link>
 

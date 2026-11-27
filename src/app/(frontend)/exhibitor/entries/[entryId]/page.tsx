@@ -34,8 +34,8 @@ export default async function CatProgressPage({
 
   return (
     <>
-      <Link href="/my-cats" className="text-sm underline-offset-4 hover:underline">
-        ← My cats
+      <Link href="/exhibitor" className="text-sm underline-offset-4 hover:underline">
+        ← My Entries
       </Link>
 
       <header>
@@ -54,10 +54,7 @@ export default async function CatProgressPage({
               {event.name} ({eventTypeLabels[event.event_type]})
             </h2>
           </CardTitle>
-          <CardDescription>
-            {event.show.show_name}
-            {judgeName && <> · Judge: {judgeName}</>}
-          </CardDescription>
+          {judgeName && <CardDescription>Judge: {judgeName}</CardDescription>}
         </CardHeader>
         <CardContent className="flex items-center justify-between gap-2">
           <Badge variant={entry.cat_status === 'called' ? 'default' : 'secondary'}>
