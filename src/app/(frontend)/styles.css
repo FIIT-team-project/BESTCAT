@@ -18,15 +18,8 @@
     font-size: 18px;
     line-height: 32px;
 
-    background: rgb(0, 0, 0);
     -webkit-font-smoothing: antialiased;
-    @apply font-sans;
-  }
-
-  html,
-  body,
-  #app {
-    height: 100%;
+    @apply bg-background font-sans;
   }
 
   body {

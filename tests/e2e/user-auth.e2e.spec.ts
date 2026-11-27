@@ -6,6 +6,30 @@ import type { Event } from '../../src/payload-types'
 
 const serverURL = 'http://localhost:3000'
 
+test('toggles password visibility and preserves credentials after a failed login', async ({
+  page,
+}) => {
+  await page.goto(`${serverURL}/login`)
+  const email = `unknown-${randomUUID()}@example.com`
+  const password = 'incorrect-password'
+  const emailField = page.getByLabel('Email', { exact: true })
+  const passwordField = page.getByLabel('Password', { exact: true })
+  await emailField.fill(email)
+  await passwordField.fill(password)
+  await expect(passwordField).toHaveAttribute('type', 'password')
+
+  await page.getByRole('button', { name: 'Show password', exact: true }).click()
+  await expect(passwordField).toHaveAttribute('type', 'text')
+  await expect(passwordField).toHaveValue(password)
+  await page.getByRole('button', { name: 'Hide password', exact: true }).click()
+  await expect(passwordField).toHaveAttribute('type', 'password')
+
+  await page.getByRole('button', { name: 'Log in', exact: true }).click()
+  await expect(page.getByRole('main').getByRole('alert')).toContainText('Unable to log in')
+  await expect(emailField).toHaveValue(email)
+  await expect(passwordField).toHaveValue(password)
+})
+
 test.describe('Regular user pages', () => {
   let payload: Payload
   let userID: number
