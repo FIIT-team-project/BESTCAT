@@ -40,7 +40,8 @@ async function changeQueue(action: QueueAction, data: FormData) {
     payload.logger.warn({ msg: error.message, entryId })
   }
 
-  revalidatePath(`/events/${eventId}`)
+  revalidatePath(`/staff/events/${eventId}/steward`)
+  revalidatePath('/live-calling')
 }
 
 export async function callAction(data: FormData) {
@@ -82,6 +83,7 @@ export async function rateAction(_state: RatingState, data: FormData): Promise<R
     throw error
   }
 
-  revalidatePath(`/events/${eventId}`)
-  redirect(`/events/${eventId}`)
+  revalidatePath(`/staff/events/${eventId}/steward`)
+  revalidatePath('/live-calling')
+  redirect(`/staff/events/${eventId}/steward`)
 }

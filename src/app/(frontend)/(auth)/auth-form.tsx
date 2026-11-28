@@ -12,7 +12,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import {
@@ -55,21 +54,39 @@ const modes = {
   },
 }
 
-export function AuthForm({ mode, token }: { mode: keyof typeof modes; token?: string }) {
+type AuthFormProps =
+  | { mode: Exclude<keyof typeof modes, 'logout'>; token?: string }
+  | {
+      mode: 'logout'
+      logoutDialog: {
+        open: boolean
+        onOpenChange: (open: boolean) => void
+        finalFocus: React.RefObject<HTMLButtonElement | null>
+      }
+    }
+
+export function AuthForm(props: AuthFormProps) {
+  const { mode } = props
   const { title, description, submit, action } = modes[mode]
   const [state, formAction, pending] = useActionState(action, {})
   const hasEmail = mode === 'login' || mode === 'forgot-password'
   const hasPassword = mode === 'login' || mode === 'reset-password'
 
-  if (mode === 'logout') {
+  if (props.mode === 'logout') {
+    const { logoutDialog } = props
+
     return (
       <AlertDialog
+        open={logoutDialog.open}
         onOpenChange={(open, eventDetails) => {
-          if (!open && pending) eventDetails.cancel()
+          if (!open && pending) {
+            eventDetails.cancel()
+            return
+          }
+          logoutDialog.onOpenChange(open)
         }}
       >
-        <AlertDialogTrigger render={<Button />}>{title}</AlertDialogTrigger>
-        <AlertDialogContent>
+        <AlertDialogContent finalFocus={logoutDialog.finalFocus}>
           <AlertDialogHeader>
             <AlertDialogTitle>{title}</AlertDialogTitle>
             <AlertDialogDescription>{description}</AlertDialogDescription>
@@ -126,7 +143,7 @@ export function AuthForm({ mode, token }: { mode: keyof typeof modes; token?: st
               )}
               {mode === 'reset-password' && (
                 <Field>
-                  <input type="hidden" name="token" value={token} />
+                  <input type="hidden" name="token" value={props.token} />
                   <FieldLabel htmlFor="confirm-password">Confirm password</FieldLabel>
                   <Input
                     id="confirm-password"
