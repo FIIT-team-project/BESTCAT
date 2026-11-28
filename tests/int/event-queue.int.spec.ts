@@ -118,6 +118,7 @@ describe('Event queue', () => {
   })
 
   beforeEach(async () => {
+    await payload.update({ collection: 'events', id: event.id, data: { status: 'planned' } })
     await payload.update({
       collection: 'cat-event-entries',
       id: entry.id,
@@ -198,6 +199,48 @@ describe('Event queue', () => {
         text_rating: null,
       }),
     ).rejects.toThrow()
+  })
+
+  it('starts when a cat is marked exhibited and finishes after its rating', async () => {
+    await payload.update({
+      collection: 'cat-event-entries',
+      id: entry.id,
+      data: { cat_status: 'exhibited' },
+      select: { queue_number: true },
+    })
+    await expect(payload.findByID({ collection: 'events', id: event.id })).resolves.toMatchObject({
+      status: 'ongoing',
+    })
+    await rateEntry(payload, judge, entry.id, { score: 8 })
+    await expect(payload.findByID({ collection: 'events', id: event.id })).resolves.toMatchObject({
+      status: 'finished',
+    })
+  })
+
+  it('starts on the first call and finishes once rated and absent cats resolve the queue', async () => {
+    const catId = typeof entry.cat === 'number' ? entry.cat : entry.cat.id
+    const second = await payload.create({
+      collection: 'cat-event-entries',
+      data: { cat: catId, event: event.id, queue_number: 2, cat_status: 'registered' },
+    })
+    const readStatus = async () =>
+      (await payload.findByID({ collection: 'events', id: event.id })).status
+
+    try {
+      expect(await readStatus()).toBe('planned')
+      await callEntry(payload, steward, entry.id)
+      expect(await readStatus()).toBe('ongoing')
+      await markEntryAbsent(payload, steward, entry.id)
+      expect(await readStatus()).toBe('ongoing')
+      await callEntry(payload, steward, entry.id)
+      await rateEntry(payload, judge, entry.id, { score: 8 })
+      expect(await readStatus()).toBe('ongoing')
+      await callEntry(payload, steward, second.id)
+      await markEntryAbsent(payload, steward, second.id)
+      expect(await readStatus()).toBe('finished')
+    } finally {
+      await payload.delete({ collection: 'cat-event-entries', id: second.id })
+    }
   })
 
   it('filters the queue by catalog number', async () => {
