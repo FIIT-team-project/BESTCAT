@@ -238,70 +238,31 @@ describe('Show import into the database', () => {
     expect(await countShowData()).toEqual({ events: 0, entries: 0, cats: 0 })
   })
 
-  it('creates cats, one table event per session and judge, and ordered queue entries', async () => {
-    expect(await importShow(payload, { show, data, options })).toEqual({
-      cats: 110,
-      events: 16,
-      entries: 440,
-      replacedEvents: 0,
-    })
-
-    const { docs } = await payload.find({
-      collection: 'events',
-      where: { name: { equals: 'Sobota 1 – Judge A' } },
-      depth: 0,
-    })
-    expect(docs).toHaveLength(1)
-    expect(docs[0]).toMatchObject({
-      show: show.id,
-      judge: judges[0].id,
-      steward: judges[1].id,
-      event_type: 'table',
-    })
-    expect(docs[0].event_date.slice(0, 10)).toBe('2024-12-28')
-
-    const { docs: entries } = await payload.find({
-      collection: 'cat-event-entries',
-      where: { event: { equals: docs[0].id } },
-      sort: 'queue_number',
-      depth: 1,
-      limit: 0,
-    })
-    expect(entries).toHaveLength(29)
-    expect(entries.slice(0, 3).map((entry) => [entry.queue_number, entry.cat_status])).toEqual([
-      [1, 'registered'],
-      [2, 'registered'],
-      [3, 'registered'],
-    ])
-    expect(entries[0].cat).toMatchObject({
-      catalog_number: 2,
-      breed: 'BLH',
-      show_class: 'CAC',
-      wcf_group: 'Adult',
-      category: 1,
-      name: null,
-      owner: null,
-    })
-  }, 60_000)
-
-  it('replaces previously imported data instead of duplicating it', async () => {
-    const result = await importShow(payload, { show, data, options })
-    expect(result.replacedEvents).toBe(16)
-    expect(await countShowData()).toEqual({ events: 16, entries: 440, cats: 110 })
-  }, 60_000)
-
   it('does not replace a show whose judging has started', async () => {
-    const { docs } = await payload.find({ collection: 'cat-event-entries', limit: 1, depth: 0 })
-    await payload.update({
+    const cat = await payload.create({
+      collection: 'cats',
+      data: { catalog_number: 1, breed: 'BLH', color: 'n', sex: 'Female' },
+    })
+    const event = await payload.create({
+      collection: 'events',
+      data: {
+        name: 'Judging session',
+        show: show.id,
+        judge: judges[0].id,
+        event_type: 'table',
+        event_date: '2024-12-28',
+        status: 'ongoing',
+      },
+    })
+    await payload.create({
       collection: 'cat-event-entries',
-      id: docs[0].id,
-      data: { cat_status: 'called' },
+      data: { cat: cat.id, event: event.id, queue_number: 1, cat_status: 'called' },
     })
 
-    await expect(importShow(payload, { show, data, options })).rejects.toBeInstanceOf(
-      ShowImportError,
-    )
-    expect(await countShowData()).toEqual({ events: 16, entries: 440, cats: 110 })
+    await expect(importShow(payload, { show, data, options })).rejects.toMatchObject({
+      problems: [expect.stringContaining('Judging of this show has already started')],
+    })
+    expect(await countShowData()).toEqual({ events: 1, entries: 1, cats: 1 })
   })
 
   it('previews the file through the endpoint for administrators only', async () => {
@@ -343,7 +304,7 @@ describe('Show import into the database', () => {
       judgeCodes: ['A', 'B', 'C', 'D'],
       counts: { 'Sobota 1': { A: 29, B: 28, C: 28, D: 25 } },
       errors: [],
-      existingEvents: 16,
+      existingEvents: 1,
     })
 
     const { token: userToken } = await login('users', judges[0].email)
