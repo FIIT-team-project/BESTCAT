@@ -1,7 +1,8 @@
 'use client'
 
+import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 
 import {
   AlertDialog,
@@ -25,6 +26,12 @@ import {
 } from '@/components/ui/card'
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+} from '@/components/ui/input-group'
 
 import { forgotPasswordAction, loginAction, logoutAction, resetPasswordAction } from './actions'
 
@@ -58,8 +65,10 @@ const modes = {
 export function AuthForm({ mode, token }: { mode: keyof typeof modes; token?: string }) {
   const { title, description, submit, action } = modes[mode]
   const [state, formAction, pending] = useActionState(action, {})
-  const hasEmail = mode === 'login' || mode === 'forgot-password'
-  const hasPassword = mode === 'login' || mode === 'reset-password'
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const isLogin = mode === 'login'
 
   if (mode === 'logout') {
     return (
@@ -104,38 +113,71 @@ export function AuthForm({ mode, token }: { mode: keyof typeof modes; token?: st
         ) : (
           <form action={formAction}>
             <FieldGroup>
-              {hasEmail && (
+              {(isLogin || mode === 'forgot-password') && (
                 <Field>
                   <FieldLabel htmlFor="email">Email</FieldLabel>
-                  <Input id="email" name="email" type="email" autoComplete="email" required />
-                </Field>
-              )}
-              {hasPassword && (
-                <Field>
-                  <FieldLabel htmlFor="password">
-                    {mode === 'reset-password' ? 'New password' : 'Password'}
-                  </FieldLabel>
                   <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    value={isLogin ? email : undefined}
+                    onChange={isLogin ? (event) => setEmail(event.target.value) : undefined}
                     required
                   />
+                </Field>
+              )}
+              {isLogin && (
+                <Field>
+                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <InputGroup>
+                    <InputGroupInput
+                      id="password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      required
+                    />
+                    <InputGroupAddon align="inline-end">
+                      <InputGroupButton
+                        type="button"
+                        size="icon-xs"
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        aria-controls="password"
+                        onClick={() => setShowPassword((visible) => !visible)}
+                      >
+                        {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                      </InputGroupButton>
+                    </InputGroupAddon>
+                  </InputGroup>
                 </Field>
               )}
               {mode === 'reset-password' && (
-                <Field>
+                <>
                   <input type="hidden" name="token" value={token} />
-                  <FieldLabel htmlFor="confirm-password">Confirm password</FieldLabel>
-                  <Input
-                    id="confirm-password"
-                    name="confirm-password"
-                    type="password"
-                    autoComplete="new-password"
-                    required
-                  />
-                </Field>
+                  <Field>
+                    <FieldLabel htmlFor="password">New password</FieldLabel>
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                    />
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="confirm-password">Confirm password</FieldLabel>
+                    <Input
+                      id="confirm-password"
+                      name="confirm-password"
+                      type="password"
+                      autoComplete="new-password"
+                      required
+                    />
+                  </Field>
+                </>
               )}
               <FieldError>{state.error}</FieldError>
               <Field>

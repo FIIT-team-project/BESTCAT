@@ -10,7 +10,7 @@ import { QueueError, findEntryForJudge } from '@/lib/events/queue'
 
 import { RatingForm } from './rating-form'
 
-export const metadata: Metadata = { title: 'Rate cat' }
+export const metadata: Metadata = { title: 'Judge cat' }
 
 const ageInYears = (birthday: string) => {
   const born = new Date(birthday)
@@ -50,7 +50,7 @@ export default async function RateEntryPage({
       <Card>
         <CardHeader>
           <CardTitle>
-            <h1 className="text-2xl font-semibold">Cat #{cat.catalog_number}</h1>
+            <h1 className="text-2xl font-semibold">Judge cat #{cat.catalog_number}</h1>
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-1 text-sm">
@@ -58,9 +58,11 @@ export default async function RateEntryPage({
           {cat.birthday && <p>Age: {ageInYears(cat.birthday)}</p>}
           <p>Sex: {cat.sex}</p>
           {cat.show_class && <p>Class: {cat.show_class}</p>}
-          <Badge variant="secondary" className="mt-2">
-            {getCatStatus(entry.cat_status).label}
-          </Badge>
+          {entry.cat_status !== 'called' && (
+            <Badge variant="secondary" className="mt-2">
+              {getCatStatus(entry.cat_status).label}
+            </Badge>
+          )}
         </CardContent>
       </Card>
 
