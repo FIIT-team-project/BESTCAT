@@ -18,13 +18,8 @@ type Preview = {
 type UserOption = { id: number; name?: string | null; email: string }
 
 const styles = {
-  section: {
-    marginTop: 'calc(var(--base) * 2)',
-    paddingTop: 'calc(var(--base) * 1.5)',
-    borderTop: '1px solid var(--theme-elevation-150)',
-  },
   row: { display: 'flex', gap: 'var(--base)', alignItems: 'center', flexWrap: 'wrap' },
-  table: { borderCollapse: 'collapse', width: '100%', margin: 'var(--base) 0' },
+  table: { borderCollapse: 'collapse', width: '100%' },
   cell: {
     border: '1px solid var(--theme-elevation-150)',
     padding: 'calc(var(--base) / 3) calc(var(--base) / 2)',
@@ -70,7 +65,9 @@ export function ShowImport() {
   const [dates, setDates] = useState<Record<string, string>>({})
   const [requestErrors, setRequestErrors] = useState<string[]>([])
   const [result, setResult] = useState<ShowImportResult | null>(null)
-  const [busy, setBusy] = useState(false)
+  const [pending, setPending] = useState<'preview' | 'import' | null>(null)
+  const busy = pending !== null
+  const importing = pending === 'import'
 
   useEffect(() => {
     if (!id) return
@@ -82,7 +79,7 @@ export function ShowImport() {
 
   if (!id) {
     return (
-      <div style={styles.section}>
+      <div className="show-import">
         <h3>Import cats and judging schedule</h3>
         <p style={styles.muted}>Save the show first, then import its spreadsheet here.</p>
       </div>
@@ -108,12 +105,12 @@ export function ShowImport() {
   }
 
   const checkFile = async () => {
-    setBusy(true)
+    setPending('preview')
     setResult(null)
     try {
       setPreview((await send('preview')) as Preview | null)
     } finally {
-      setBusy(false)
+      setPending(null)
     }
   }
 
@@ -128,7 +125,7 @@ export function ShowImport() {
         preview.sessions.map((session) => [session, dates[session]]),
       ),
     }
-    setBusy(true)
+    setPending('import')
     try {
       const imported = (await send('import', options)) as ShowImportResult | null
       if (imported) {
@@ -137,7 +134,7 @@ export function ShowImport() {
         toast.success(`Imported ${imported.cats} cats into ${imported.events} events.`)
       }
     } finally {
-      setBusy(false)
+      setPending(null)
     }
   }
 
@@ -162,7 +159,7 @@ export function ShowImport() {
   )
 
   return (
-    <div style={styles.section}>
+    <div className="show-import">
       <h3>Import cats and judging schedule</h3>
       <p style={styles.muted}>
         Upload the organizer&apos;s .xlsx file. Each session column (e.g. &quot;Sobota 1&quot;)
@@ -173,6 +170,7 @@ export function ShowImport() {
         <input
           type="file"
           accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          style={{ maxWidth: '100%' }}
           onChange={(e) => {
             setFile(e.target.files?.[0] ?? null)
             setPreview(null)
@@ -231,7 +229,7 @@ export function ShowImport() {
 
           {preview.errors.length === 0 && (
             <>
-              <div style={{ overflowX: 'auto' }}>
+              <div style={{ justifySelf: 'stretch', overflowX: 'auto' }}>
                 <table style={styles.table}>
                   <thead>
                     <tr>
@@ -297,7 +295,7 @@ export function ShowImport() {
               )}
 
               <Button disabled={missingChoices || busy} onClick={runImport} margin={false}>
-                Import
+                {importing ? 'Importing…' : 'Import'}
               </Button>
             </>
           )}
